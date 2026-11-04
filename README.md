@@ -3,6 +3,13 @@
 **Platform:** Hyperlocal Peer-to-Peer Textbook & Book Exchange Platform for MVJCE  
 **Scope:** MVJ College of Engineering, Channasandra, Bangalore  
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success?style=for-the-badge&logo=github)](https://udaygb890-commits.github.io/campus-shelf/)
+[![GitHub Repo](https://img.shields.io/badge/Repository-campus--shelf-blue?style=for-the-badge&logo=github)](https://github.com/udaygb890-commits/campus-shelf)
+
+### 🌐 Live Deployment
+The application is live and accessible at:
+👉 **[https://udaygb890-commits.github.io/campus-shelf/](https://udaygb890-commits.github.io/campus-shelf/)**
+
 ---
 
 ## 🌟 Executive Summary & Core Pillars
