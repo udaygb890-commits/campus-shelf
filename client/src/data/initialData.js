@@ -1,0 +1,454 @@
+export const MVJCE_LANDMARKS = [
+  'ECE Block Lobby',
+  'Main Library Entrance',
+  'CSE / ISE Block',
+  'Mechanical Block Gate',
+  'Main Auditorium Steps'
+];
+
+export const MVJCE_DEPARTMENTS = [
+  'Electronics and Communication Engineering (ECE)',
+  'Computer Science and Engineering (CSE)',
+  'Information Science and Engineering (ISE)',
+  'Aerospace Engineering',
+  'Mechanical Engineering',
+  'Artificial Intelligence & Machine Learning (AIML)',
+  'Electrical and Electronics Engineering (EEE)',
+  'Civil Engineering'
+];
+
+export const CAMPUS_ZONES = [
+  'Main Hostel',
+  'PG near Hosa Road',
+  'Day Scholar (Commuter)'
+];
+
+export const INITIAL_USER = {
+  id: 'usr_uday_001',
+  full_name: 'Uday G B',
+  official_email: 'udaygb890@mvjce.edu.in',
+  phone_number: '+91 9876543210',
+  branch: 'Electronics and Communication Engineering (ECE)',
+  year: 2,
+  semester: 3,
+  campus_zone: 'Main Hostel',
+  default_handoff: 'ECE Block Lobby',
+  credit_balance: 2,
+  privacy_enabled: true,
+  avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+  role: 'student',
+  onboarding_completed: true,
+};
+
+export const INITIAL_LISTINGS = [
+  {
+    id: 'list_101',
+    user_id: 'usr_rahul_002',
+    user_name: 'Rahul V.',
+    user_branch: 'ECE',
+    user_year: '3rd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80',
+    title: 'The Real Textbook: Engineering Active Learning',
+    author: 'Kanz Sshelf',
+    subject_code: '18EC32',
+    semester: 3,
+    category: 'Engineering Textbook',
+    condition: 'Good / Highlights',
+    exchange_type: 'swap', // 'swap' | 'cash'
+    price: 0,
+    handoff_spot: 'ECE Block Lobby',
+    image_url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 42,
+    created_at: '2026-11-02T10:15:00Z',
+  },
+  {
+    id: 'list_102',
+    user_id: 'usr_priya_003',
+    user_name: 'Priya S.',
+    user_branch: 'CSE',
+    user_year: '2nd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    title: 'Engineering Mathematics-III',
+    author: 'B.S. Grewal',
+    subject_code: '18MAT31',
+    semester: 3,
+    category: 'Engineering Textbook',
+    condition: 'Like New',
+    exchange_type: 'swap',
+    price: 0,
+    handoff_spot: 'Main Library Entrance',
+    image_url: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 89,
+    created_at: '2026-11-01T14:20:00Z',
+  },
+  {
+    id: 'list_103',
+    user_id: 'usr_sneha_004',
+    user_name: 'Sneha R.',
+    user_branch: 'CSE',
+    user_year: '2nd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
+    title: 'Maths & Novels Bumper Pack (VTU Core + Cheatmoms)',
+    author: 'Kove Sshelf',
+    subject_code: '18CS34',
+    semester: 3,
+    category: 'Notes & PYQs',
+    condition: 'Good / Highlights',
+    exchange_type: 'cash',
+    price: 250,
+    handoff_spot: 'CSE / ISE Block',
+    image_url: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 31,
+    created_at: '2026-10-31T09:40:00Z',
+  },
+  {
+    id: 'list_104',
+    user_id: 'usr_uday_001',
+    user_name: 'Uday G B',
+    user_branch: 'ECE',
+    user_year: '2nd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+    title: 'Analog Electronics Circuits & Lab Manual',
+    author: 'Sedra & Smith',
+    subject_code: '18EC33',
+    semester: 3,
+    category: 'Engineering Textbook',
+    condition: 'Like New',
+    exchange_type: 'swap',
+    price: 0,
+    handoff_spot: 'ECE Block Lobby',
+    image_url: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 18,
+    created_at: '2026-11-03T08:00:00Z',
+  },
+  {
+    id: 'list_105',
+    user_id: 'usr_uday_001',
+    user_name: 'Uday G B',
+    user_branch: 'ECE',
+    user_year: '2nd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+    title: 'Digital System Design using Verilog',
+    author: 'Charles Roth',
+    subject_code: '18EC34',
+    semester: 3,
+    category: 'Engineering Textbook',
+    condition: 'Good / Highlights',
+    exchange_type: 'cash',
+    price: 180,
+    handoff_spot: 'ECE Block Lobby',
+    image_url: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 12,
+    created_at: '2026-11-02T16:30:00Z',
+  },
+  {
+    id: 'list_106',
+    user_id: 'usr_arjun_005',
+    user_name: 'Arjun M.',
+    user_branch: 'EEE',
+    user_year: '4th Year',
+    user_avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    title: 'Quantum Physics & Engineering Materials Notes',
+    author: 'Dr. G. Senthil',
+    subject_code: '18PHY12',
+    semester: 1,
+    category: 'Notes & PYQs',
+    condition: 'Worn / Usable',
+    exchange_type: 'swap',
+    price: 0,
+    handoff_spot: 'Main Auditorium Steps',
+    image_url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 55,
+    created_at: '2026-10-28T11:00:00Z',
+  },
+  {
+    id: 'list_107',
+    user_id: 'usr_vikram_006',
+    user_name: 'Vikram P.',
+    user_branch: 'Mech',
+    user_year: '3rd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    title: 'Fluid Mechanics & Thermodynamics VTU Notes',
+    author: 'Bansal',
+    subject_code: '18ME33',
+    semester: 3,
+    category: 'Engineering Textbook',
+    condition: 'Good / Highlights',
+    exchange_type: 'cash',
+    price: 150,
+    handoff_spot: 'Mechanical Block Gate',
+    image_url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 29,
+    created_at: '2026-10-25T13:10:00Z',
+  },
+  {
+    id: 'list_108',
+    user_id: 'usr_anjali_007',
+    user_name: 'Anjali K.',
+    user_branch: 'ECE',
+    user_year: '3rd Year',
+    user_avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80',
+    title: 'To Kill a Mockingbird (Special Campus Edition)',
+    author: 'Harper Lee',
+    subject_code: 'ENG01',
+    semester: 1,
+    category: 'General Novel',
+    condition: 'Like New',
+    exchange_type: 'swap',
+    price: 0,
+    handoff_spot: 'Main Library Entrance',
+    image_url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
+    status: 'available',
+    views: 64,
+    created_at: '2026-10-29T17:45:00Z',
+  }
+];
+
+export const INITIAL_LIBRARY = [
+  {
+    id: 'lib_001',
+    user_id: 'usr_uday_001',
+    title: 'Network Analysis & Transmission Lines',
+    author: 'M.E. Van Valkenburg',
+    subject_code: '18EC35',
+    semester: 3,
+    category: 'Engineering Textbook',
+    image_url: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=600&q=80',
+    created_at: '2026-10-15T09:00:00Z'
+  },
+  {
+    id: 'lib_002',
+    user_id: 'usr_uday_001',
+    title: 'Signals & Systems (VTU Solutions)',
+    author: 'Alan V. Oppenheim',
+    subject_code: '18EC36',
+    semester: 3,
+    category: 'Engineering Textbook',
+    image_url: 'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=600&q=80',
+    created_at: '2026-10-18T11:20:00Z'
+  },
+  {
+    id: 'lib_003',
+    user_id: 'usr_uday_001',
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    subject_code: 'SELF01',
+    semester: 1,
+    category: 'General Novel',
+    image_url: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80',
+    created_at: '2026-10-20T14:40:00Z'
+  }
+];
+
+export const INITIAL_REQUESTS = [
+  {
+    id: 'req_201',
+    listing_id: 'list_104',
+    listing_title: 'Analog Electronics Circuits & Lab Manual',
+    listing_image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
+    owner_id: 'usr_uday_001',
+    requester_id: 'usr_priya_003',
+    requester_name: 'Priya S.',
+    requester_branch: 'CSE',
+    requester_year: '2nd Year',
+    requester_avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    offer_type: 'swap_book', // 'swap_book' | 'swap_credit' | 'cash'
+    offered_item_name: 'Operating Systems Notes & Lab Manual',
+    offer_amount_inr: 0,
+    handoff_spot: 'ECE Block Lobby',
+    status: 'pending', // 'pending' | 'accepted' | 'declined' | 'completed'
+    created_at: '2026-11-03T11:15:00Z'
+  },
+  {
+    id: 'req_202',
+    listing_id: 'list_105',
+    listing_title: 'Digital System Design using Verilog',
+    listing_image: 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80',
+    owner_id: 'usr_uday_001',
+    requester_id: 'usr_rahul_002',
+    requester_name: 'Rahul V.',
+    requester_branch: 'ECE',
+    requester_year: '3rd Year',
+    requester_avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80',
+    offer_type: 'cash',
+    offered_item_name: 'Cash Purchase Offer',
+    offer_amount_inr: 150,
+    handoff_spot: 'Main Library Entrance',
+    status: 'pending',
+    created_at: '2026-11-03T12:30:00Z'
+  },
+  {
+    id: 'req_203',
+    listing_id: 'list_104',
+    listing_title: 'Analog Electronics Circuits & Lab Manual',
+    listing_image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80',
+    owner_id: 'usr_uday_001',
+    requester_id: 'usr_sneha_004',
+    requester_name: 'Sneha R.',
+    requester_branch: 'CSE',
+    requester_year: '2nd Year',
+    requester_avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=150&q=80',
+    offer_type: 'swap_credit',
+    offered_item_name: '1 Credit Token',
+    offer_amount_inr: 0,
+    handoff_spot: 'CSE / ISE Block',
+    status: 'pending',
+    created_at: '2026-11-03T13:45:00Z'
+  }
+];
+
+export const INITIAL_CHATS = [
+  {
+    id: 'chat_301',
+    request_id: 'req_pre_001',
+    listing_id: 'list_101',
+    listing_title: 'The Real Textbook: Engineering Active Learning',
+    partner_id: 'usr_rahul_002',
+    partner_name: 'Rahul V.',
+    partner_branch: 'ECE',
+    partner_year: '3rd Year',
+    partner_avatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80',
+    handoff_spot: 'ECE Block Lobby',
+    status: 'active', // 'active' | 'completed'
+    last_message: 'On my way!',
+    last_message_time: '2:58 PM',
+    unread: false,
+    messages: [
+      { id: 'm1', sender_id: 'usr_rahul_002', sender_name: 'Rahul V.', text: 'Hey, is this still available?', time: '10:30 AM', is_me: false },
+      { id: 'm2', sender_id: 'usr_uday_001', sender_name: 'Uday G B', text: 'Yes, it is. Are you free this afternoon?', time: '10:35 AM', is_me: true },
+      { id: 'm3', sender_id: 'usr_rahul_002', sender_name: 'Rahul V.', text: 'Perfect, I can meet you at the ECE Block Lobby at 3 PM.', time: '10:36 AM', is_me: false },
+      { id: 'm4', sender_id: 'usr_uday_001', sender_name: 'Uday G B', text: 'Great, see you there!', time: '10:37 AM', is_me: true },
+      { id: 'm5', sender_id: 'usr_rahul_002', sender_name: 'Rahul V.', text: 'On my way!', time: '2:58 PM', is_me: false }
+    ]
+  }
+];
+
+export const INITIAL_LEDGERS = [
+  {
+    id: 'led_401',
+    date: 'Nov 2, 2026 - 2:15 PM',
+    type: 'credit', // 'credit' | 'cash'
+    description: 'Redeemed 1 Credit Token for Engineering Mathematics-III with Priya S.',
+    amount_text: '-1 Token',
+    amount_color: 'text-red-500',
+    status: 'Verified & Cleared',
+    raw_amount: -1
+  },
+  {
+    id: 'led_402',
+    date: 'Oct 30, 2026 - 11:00 AM',
+    type: 'credit',
+    description: "Earned 1 Credit Token for listing 'Maths of Mathematics' (Swap)",
+    amount_text: '+1 Token',
+    amount_color: 'text-emerald-600',
+    status: 'Verified & Cleared',
+    raw_amount: 1
+  },
+  {
+    id: 'led_403',
+    date: 'Oct 25, 2026 - 4:30 PM',
+    type: 'cash',
+    description: "Cash Sale for 'ECE Maths' to Anjali K.",
+    amount_text: '+₹150',
+    amount_color: 'text-emerald-600',
+    status: 'Verified & Cleared',
+    raw_amount: 150
+  },
+  {
+    id: 'led_404',
+    date: 'Oct 20, 2026 - 9:00 AM',
+    type: 'credit',
+    description: "Earned 1 Credit Token for listing 'The Maths 3rd Sem...' (Swap)",
+    amount_text: '+1 Token',
+    amount_color: 'text-emerald-600',
+    status: 'Verified & Cleared',
+    raw_amount: 1
+  },
+  {
+    id: 'led_405',
+    date: 'Oct 15, 2026 - 1:00 PM',
+    type: 'cash',
+    description: "Cash Sale for 'Maths & Novels Pack' to Sneha R.",
+    amount_text: '+₹250',
+    amount_color: 'text-emerald-600',
+    status: 'Verified & Cleared',
+    raw_amount: 250
+  }
+];
+
+export const INITIAL_HISTORY = [
+  {
+    id: 'hist_501',
+    date: 'Oct 26, 2023',
+    book_title: 'The Real Textbook: Engineering Active...',
+    book_image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Rahul V.',
+    counterparty_dept: 'ECE, 3rd Year',
+    type: 'swap',
+    value_text: 'Swapped for: [Credit Token]',
+    status: 'Completed'
+  },
+  {
+    id: 'hist_502',
+    date: 'Oct 24, 2023',
+    book_title: 'Maths of Mathematics',
+    book_image: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Priya S.',
+    counterparty_dept: 'CSE, 2nd Year',
+    type: 'swap',
+    value_text: 'Swapped for: [Credit Token]',
+    status: 'Completed'
+  },
+  {
+    id: 'hist_503',
+    date: 'Oct 21, 2023',
+    book_title: 'ECE Maths',
+    book_image: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Anjali K.',
+    counterparty_dept: 'ECE, 3rd Year',
+    type: 'sale',
+    value_text: 'Sold for: ₹150',
+    status: 'Completed'
+  },
+  {
+    id: 'hist_504',
+    date: 'Oct 18, 2023',
+    book_title: 'The Maths 3rd Sem Engineering...',
+    book_image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Vikram P.',
+    counterparty_dept: 'MECH, 3rd Year',
+    type: 'swap',
+    value_text: 'Swapped for: [Credit Token]',
+    status: 'Completed'
+  },
+  {
+    id: 'hist_505',
+    date: 'Oct 15, 2023',
+    book_title: 'Maths & Novels Bumper Pack',
+    book_image: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Sneha R.',
+    counterparty_dept: 'CSE, 2nd Year',
+    type: 'sale',
+    value_text: 'Sold for: ₹250',
+    status: 'Completed'
+  },
+  {
+    id: 'hist_506',
+    date: 'Oct 10, 2023',
+    book_title: 'Quantum Physics Notes',
+    book_image: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=300&q=80',
+    counterparty_name: 'Arjun M.',
+    counterparty_dept: 'EEE, 4th Year',
+    type: 'swap',
+    value_text: 'Swapped for: [Credit Token]',
+    status: 'Completed'
+  }
+];
+

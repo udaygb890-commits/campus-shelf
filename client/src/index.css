@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-2xl;
+  }
+  .glass-card-dark {
+    @apply bg-[#002147]/90 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl text-white;
+  }
+  .glass-input {
+    @apply bg-white/60 backdrop-blur-sm border border-slate-200/80 focus:border-indigo-500 focus:bg-white/95 transition-all rounded-xl px-4 py-2.5 outline-none text-slate-800 placeholder-slate-400;
+  }
+  .glass-btn-primary {
+    @apply bg-indigo-600/90 hover:bg-indigo-600 backdrop-blur-sm text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+}
+
+/* Custom campus watermark pattern */
+.campus-canvas {
+  background-color: #fbfbf9;
+  background-image: 
+    radial-gradient(circle at 10% 20%, rgba(0, 33, 71, 0.02) 0%, transparent 20%),
+    radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.03) 0%, transparent 25%),
+    linear-gradient(to right, rgba(0, 33, 71, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 33, 71, 0.015) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+}
+
+/* Hide scrollbar for clean UI */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
