@@ -3,7 +3,7 @@ import { Search, Edit3, Trash2, Eye, MapPin, Repeat, Banknote, Sparkles, Plus, A
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function ActiveListings() {
-  const { listings, currentUser, setIsListModalOpen, showToast } = useCampusShelf();
+  const { listings, currentUser, setIsListModalOpen, updateListing, deleteListing, showToast } = useCampusShelf();
 
   // Search & Filters
   const [search, setSearch] = useState('');
@@ -42,10 +42,21 @@ export default function ActiveListings() {
     });
   }, [listings, currentUser.id, selectedStatus, search, activeTag]);
 
-  const handleSaveEdit = (e) => {
+  const handleSaveEdit = async (e) => {
     e.preventDefault();
-    showToast(`Updated "${editingBook.title}"`);
+    if (!editingBook) return;
+    await updateListing(editingBook.id, {
+      title: editingBook.title,
+      author: editingBook.author,
+      handoff_spot: editingBook.handoff_spot,
+    });
     setEditingBook(null);
+  };
+
+  const handleDelete = async (id, title) => {
+    if (window.confirm(`Are you sure you want to remove "${title}" from your active listings?`)) {
+      await deleteListing(id);
+    }
   };
 
   return (
@@ -230,6 +241,13 @@ export default function ActiveListings() {
                     className="p-2.5 rounded-xl border border-slate-200/80 hover:border-indigo-400 bg-white/70 hover:bg-white text-slate-700 hover:text-indigo-600 transition-all shadow-sm"
                   >
                     <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(book.id, book.title)}
+                    title="Remove listing"
+                    className="p-2.5 rounded-xl border border-red-200/80 hover:border-red-400 bg-red-50/50 hover:bg-red-50 text-red-600 transition-all shadow-sm"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

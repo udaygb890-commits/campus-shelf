@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, ShieldCheck, ArrowRight, Lock, Mail, AlertCircle, RefreshCw } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
+import { signInUser } from '../lib/supabase';
 
 export default function Auth({ onNavigate }) {
-  const { updateProfile, setIsGuest, showToast } = useCampusShelf();
+  const navigate = useNavigate();
+  const { performLogin, setIsGuest, showToast, sendPasswordReset } = useCampusShelf();
   const [email, setEmail] = useState('student.name@mvjce.edu.in');
   const [password, setPassword] = useState('password123');
   const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const go = (route) => {
+    if (onNavigate) {
+      onNavigate(route);
+    } else {
+      if (route === 'register') navigate('/register');
+      else if (route === 'welcome') navigate('/');
+      else navigate('/dashboard/feed');
+    }
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -30,18 +43,32 @@ export default function Auth({ onNavigate }) {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const { data, error } = await signInUser({ email, password });
       setIsLoading(false);
-      setIsGuest(false);
+
+      if (error) {
+        setErrorMsg(error.message || 'Login failed. Please verify credentials.');
+        return;
+      }
+
+      performLogin({
+        official_email: email,
+        full_name: data?.user?.user_metadata?.full_name || 'Rahul Varma'
+      });
       showToast('Welcome back to CampusShelf!');
-      onNavigate('feed');
-    }, 700);
+      go('feed');
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg(err.message || 'An unexpected authentication error occurred.');
+    }
   };
 
   const handleGuestAccess = () => {
     setIsGuest(true);
     showToast('Browsing in Guest Mode (Read-Only)');
-    onNavigate('feed');
+    go('feed');
   };
 
   return (
@@ -123,13 +150,19 @@ export default function Auth({ onNavigate }) {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-xs font-semibold text-slate-700">Password</label>
-                <a
-                  href="#forgot"
-                  onClick={(e) => { e.preventDefault(); showToast('Password reset link sent to registered email'); }}
-                  className="text-[11px] text-indigo-600 hover:underline"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!email || !email.includes('@')) {
+                      setErrorMsg('Please enter your college email to receive a password reset link.');
+                      return;
+                    }
+                    sendPasswordReset(email);
+                  }}
+                  className="text-[11px] text-indigo-600 hover:underline font-medium"
                 >
                   Forgot Password?
-                </a>
+                </button>
               </div>
               <div className="relative flex items-center">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5" />
@@ -196,7 +229,7 @@ export default function Auth({ onNavigate }) {
               <p className="text-xs text-slate-600">
                 New to CampusShelf?{' '}
                 <button
-                  onClick={() => onNavigate('register')}
+                  onClick={() => go('register')}
                   className="text-indigo-600 font-semibold hover:underline"
                 >
                   Create your account.

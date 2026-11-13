@@ -1,15 +1,21 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X, MapPin, Repeat, Banknote, Inbox, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function PendingRequests({ onOpenChat }) {
+  const navigate = useNavigate();
   const { requests, acceptRequest, declineRequest } = useCampusShelf();
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
 
   const handleAccept = (requestId) => {
     const chatId = acceptRequest(requestId);
-    if (onOpenChat) onOpenChat(chatId);
+    if (onOpenChat) {
+      onOpenChat(chatId);
+    } else {
+      navigate('/dashboard/chat');
+    }
   };
 
   return (

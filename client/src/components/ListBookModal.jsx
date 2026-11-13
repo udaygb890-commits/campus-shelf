@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, BookOpen, Layers, Repeat, Banknote, MapPin, Check, Image as ImageIcon } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 import { MVJCE_LANDMARKS } from '../data/initialData';
@@ -7,6 +7,8 @@ export default function ListBookModal() {
   const { 
     isListModalOpen, 
     setIsListModalOpen, 
+    selectedBookForListing,
+    setSelectedBookForListing,
     library, 
     addListing, 
     showToast,
@@ -32,6 +34,23 @@ export default function ListBookModal() {
 
   const CATEGORIES = ['Engineering Textbook', 'General Novel', 'Notes & PYQs'];
   const CONDITIONS = ['Like New', 'Good / Highlights', 'Worn / Usable'];
+
+  // Pre-fill from selected library book if any
+  useEffect(() => {
+    if (selectedBookForListing) {
+      setTitle(selectedBookForListing.title || '');
+      setAuthor(selectedBookForListing.author || '');
+      setSubjectCode(selectedBookForListing.subject_code || '');
+      setCategory(selectedBookForListing.category || 'Engineering Textbook');
+      setImagePreview(selectedBookForListing.image_url || '');
+      setImportSource('manual');
+    }
+  }, [selectedBookForListing]);
+
+  const handleClose = () => {
+    setIsListModalOpen(false);
+    setSelectedBookForListing(null);
+  };
 
   const handleSelectFromLibrary = (libBook) => {
     setTitle(libBook.title);
@@ -88,7 +107,7 @@ export default function ListBookModal() {
       });
 
       setIsLoading(false);
-      setIsListModalOpen(false);
+      handleClose();
       // Reset form
       setTitle('');
       setAuthor('');
@@ -103,7 +122,7 @@ export default function ListBookModal() {
       <div className="glass-card max-w-2xl w-full p-6 sm:p-8 border border-white/80 shadow-2xl relative my-auto animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {/* Close Button */}
         <button
-          onClick={() => setIsListModalOpen(false)}
+          onClick={handleClose}
           className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 transition-colors"
         >
           <X className="w-5 h-5" />

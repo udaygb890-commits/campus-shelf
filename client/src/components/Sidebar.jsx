@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   BookOpen, 
   PlusCircle, 
@@ -19,6 +20,9 @@ import {
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function Sidebar({ currentView, setCurrentView }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { 
     currentUser, 
     requests, 
@@ -36,12 +40,44 @@ export default function Sidebar({ currentView, setCurrentView }) {
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const activeChatCount = chats.filter(c => c.status === 'active').length;
 
+  const VIEW_TO_PATH = {
+    feed: '/dashboard/feed',
+    active_listings: '/dashboard/active-listings',
+    my_library: '/dashboard/library',
+    history: '/dashboard/history',
+    chat: '/dashboard/chat',
+    pending_requests: '/dashboard/requests',
+    credits: '/dashboard/credits',
+    profile: '/dashboard/profile'
+  };
+
+  const PATH_TO_VIEW = {
+    '/dashboard/feed': 'feed',
+    '/dashboard/active-listings': 'active_listings',
+    '/dashboard/library': 'my_library',
+    '/dashboard/history': 'history',
+    '/dashboard/chat': 'chat',
+    '/dashboard/requests': 'pending_requests',
+    '/dashboard/credits': 'credits',
+    '/dashboard/profile': 'profile'
+  };
+
+  const effectiveView = currentView || PATH_TO_VIEW[location?.pathname] || 'feed';
+
+  const navigateTo = (view) => {
+    if (setCurrentView) setCurrentView(view);
+    const targetPath = VIEW_TO_PATH[view];
+    if (targetPath && navigate && location?.pathname !== targetPath) {
+      navigate(targetPath);
+    }
+  };
+
   return (
     <aside className="w-full md:w-[280px] bg-[#002147] text-white flex flex-col flex-shrink-0 md:min-h-screen border-r border-white/10 shadow-2xl z-20">
       {/* Brand Header */}
       <div className="p-6 border-b border-white/10">
         <div 
-          onClick={() => setCurrentView('feed')}
+          onClick={() => navigateTo('feed')}
           className="flex items-center gap-3 cursor-pointer group"
         >
           <div className="w-9 h-9 rounded-xl bg-indigo-600/90 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
@@ -77,9 +113,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
       <nav className="flex-1 px-4 py-5 space-y-1.5 overflow-y-auto no-scrollbar text-sm font-medium">
         {/* Direct Link: Browse Feed */}
         <button
-          onClick={() => setCurrentView('feed')}
+          onClick={() => navigateTo('feed')}
           className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-            currentView === 'feed'
+            effectiveView === 'feed'
               ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold'
               : 'text-slate-300 hover:bg-white/5 hover:text-white'
           }`}
@@ -104,9 +140,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
           {isMyBooksOpen && (
             <div className="pl-9 pr-2 py-1 space-y-1">
               <button
-                onClick={() => setCurrentView('active_listings')}
+                onClick={() => navigateTo('active_listings')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  currentView === 'active_listings'
+                  effectiveView === 'active_listings'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -116,9 +152,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
               </button>
 
               <button
-                onClick={() => setCurrentView('my_library')}
+                onClick={() => navigateTo('my_library')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  currentView === 'my_library'
+                  effectiveView === 'my_library'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -128,9 +164,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
               </button>
 
               <button
-                onClick={() => setCurrentView('history')}
+                onClick={() => navigateTo('history')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  currentView === 'history'
+                  effectiveView === 'history'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -158,9 +194,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
           {isChatsOpen && (
             <div className="pl-9 pr-2 py-1 space-y-1">
               <button
-                onClick={() => setCurrentView('chat')}
+                onClick={() => navigateTo('chat')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                  currentView === 'chat'
+                  effectiveView === 'chat'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -177,9 +213,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
               </button>
 
               <button
-                onClick={() => setCurrentView('pending_requests')}
+                onClick={() => navigateTo('pending_requests')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                  currentView === 'pending_requests'
+                  effectiveView === 'pending_requests'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -214,9 +250,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
           {isCreditsOpen && (
             <div className="pl-9 pr-2 py-1 space-y-1">
               <button
-                onClick={() => setCurrentView('credits')}
+                onClick={() => navigateTo('credits')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  currentView === 'credits'
+                  effectiveView === 'credits'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -226,9 +262,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
               </button>
 
               <button
-                onClick={() => setCurrentView('credits')}
+                onClick={() => navigateTo('credits')}
                 className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  currentView === 'credits'
+                  effectiveView === 'credits'
                     ? 'bg-white/10 text-white font-semibold'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
                 }`}
@@ -242,9 +278,9 @@ export default function Sidebar({ currentView, setCurrentView }) {
 
         {/* Direct Link: Profile & Settings */}
         <button
-          onClick={() => setCurrentView('profile')}
+          onClick={() => navigateTo('profile')}
           className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-            currentView === 'profile'
+            effectiveView === 'profile'
               ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold'
               : 'text-slate-300 hover:bg-white/5 hover:text-white'
           }`}
@@ -281,4 +317,3 @@ export default function Sidebar({ currentView, setCurrentView }) {
     </aside>
   );
 }
-

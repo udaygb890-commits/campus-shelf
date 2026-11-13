@@ -5,7 +5,7 @@ import BookGrid from './BookGrid';
 import { MVJCE_LANDMARKS, MVJCE_DEPARTMENTS } from '../data/initialData';
 
 export default function Feed({ onOpenChat }) {
-  const { listings, currentUser, isGuest, requests, acceptRequest, showToast } = useCampusShelf();
+  const { listings, currentUser, isGuest, createRequest, showToast } = useCampusShelf();
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,18 +70,23 @@ export default function Feed({ onOpenChat }) {
     });
   }, [listings, searchTerm, selectedYear, selectedDept, activeTag]);
 
-  const handleSendProposal = (e) => {
+  const handleSendProposal = async (e) => {
     e.preventDefault();
     if (isGuest) {
-      alert('Please log in with your MVJCE email to send an exchange offer.');
+      showToast('Please log in with your MVJCE email to send an exchange offer.');
       return;
     }
     if (selectedBookForProposal.user_id === currentUser.id) {
-      alert('You cannot propose a swap on your own listing.');
+      showToast('You cannot propose a swap on your own listing.');
       return;
     }
 
-    showToast(`Swap proposal sent to ${selectedBookForProposal.user_name}!`);
+    await createRequest({
+      listing: selectedBookForProposal,
+      offerType,
+      cashAmount: cashOfferAmount,
+      handoffSpot: proposalHandoff
+    });
     setSelectedBookForProposal(null);
   };
 

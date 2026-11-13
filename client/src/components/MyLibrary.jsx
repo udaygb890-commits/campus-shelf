@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { BookOpen, Plus, Search, Sparkles, Upload, CheckCircle2, RefreshCw, X, ArrowRight } from 'lucide-react';
+import { BookOpen, Plus, Search, Sparkles, Upload, CheckCircle2, RefreshCw, X, ArrowRight, Trash2 } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function MyLibrary() {
-  const { library, addToLibrary, setIsListModalOpen, showToast } = useCampusShelf();
+  const { library, addToLibrary, removeFromLibrary, openListFromLibrary, showToast } = useCampusShelf();
 
   const [search, setSearch] = useState('');
   const [activeTag, setActiveTag] = useState('All');
@@ -180,15 +180,26 @@ export default function MyLibrary() {
 
                 <div className="pt-2 flex items-center justify-between border-t border-slate-100/60 mt-2">
                   <span className="text-[10px] text-slate-400">Sem {item.semester}</span>
-                  <button
-                    onClick={() => {
-                      setIsListModalOpen(true);
-                    }}
-                    className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                  >
-                    <span>List on Feed</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Remove "${item.title}" from your library?`)) {
+                          removeFromLibrary(item.id);
+                        }
+                      }}
+                      title="Remove from Library"
+                      className="text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => openListFromLibrary(item)}
+                      className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <span>List on Feed</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

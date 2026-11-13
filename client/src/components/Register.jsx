@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
+import { signUpUser, signInWithGoogle, sendPhoneOtp, verifyPhoneOtp } from '../lib/supabase';
 
 export default function Register({ onNavigate }) {
-  const { updateProfile, showToast } = useCampusShelf();
+  const navigate = useNavigate();
+  const { updateProfile, performLogin, showToast } = useCampusShelf();
 
   // Form State
   const [step, setStep] = useState('FORM'); // 'FORM' | 'OTP'
@@ -17,6 +20,17 @@ export default function Register({ onNavigate }) {
   const [isLoading, setIsLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
 
+  const go = (route) => {
+    if (onNavigate) {
+      onNavigate(route);
+    } else {
+      if (route === 'welcome') navigate('/');
+      else if (route === 'auth') navigate('/auth');
+      else if (route === 'onboarding') navigate('/onboarding');
+      else navigate('/dashboard/feed');
+    }
+  };
+
   // Validation
   const isEmailValid = email.includes('@') && email.endsWith('.edu.in');
   const isPhoneValid = /^\d{10}$/.test(phone.replace(/\D/g, ''));
@@ -24,7 +38,7 @@ export default function Register({ onNavigate }) {
   const isPasswordMatch = password === confirmPassword && password.length > 0;
   const isFormComplete = fullName.trim().length >= 2 && isPhoneValid && isPasswordMatch;
 
-  const handleSendOtp = (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -50,47 +64,94 @@ export default function Register({ onNavigate }) {
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      // 1. Supabase Signup request
+      const { data: signUpData, error: signUpError } = await signUpUser({
+        email,
+        password,
+        fullName: fullName.trim(),
+        phone: `+91${phone}`
+      });
+
+      if (signUpError && !signUpError.message?.includes('already registered')) {
+        setIsLoading(false);
+        setErrorMsg(signUpError.message);
+        return;
+      }
+
+      // 2. Request OTP via SMS
+      await sendPhoneOtp(phone);
       setIsLoading(false);
       setStep('OTP');
       showToast(`Verification code sent to +91 ******${phone.slice(-4)}`);
-    }, 700);
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg(err.message || 'Failed to initiate registration.');
+    }
   };
 
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     if (otpCode.length < 4) {
-      setErrorMsg('Please enter the verification code (try 123456).');
+      setErrorMsg('Please enter the verification code.');
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { data, error } = await verifyPhoneOtp(phone, otpCode);
       setIsLoading(false);
-      // Save metadata
+
+      if (error) {
+        setErrorMsg(error.message || 'Invalid or expired OTP code.');
+        return;
+      }
+
+      // Save metadata and establish session
       updateProfile({
         full_name: fullName,
         official_email: email,
         phone_number: `+91 ${phone}`,
         onboarding_completed: false
       });
+      performLogin({
+        full_name: fullName,
+        official_email: email,
+        phone_number: `+91 ${phone}`,
+      });
       showToast('Phone verified! Please complete your academic details.');
-      onNavigate('onboarding');
-    }, 800);
+      go('onboarding');
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg(err.message || 'OTP verification failed.');
+    }
   };
 
-  const handleGoogleSignup = () => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { error } = await signInWithGoogle();
       setIsLoading(false);
+      if (error) {
+        setErrorMsg(error.message || 'Google OAuth failed.');
+        return;
+      }
       updateProfile({
         full_name: fullName || 'MVJCE Student',
         official_email: email || 'student@mvjce.edu.in',
         onboarding_completed: false
       });
+      performLogin({
+        full_name: fullName || 'MVJCE Student',
+        official_email: email || 'student@mvjce.edu.in',
+      });
       showToast('Authenticated via Google');
-      onNavigate('onboarding');
-    }, 800);
+      go('onboarding');
+    } catch (err) {
+      setIsLoading(false);
+      setErrorMsg(err.message || 'Google Sign Up failed.');
+    }
   };
 
   return (
@@ -98,7 +159,7 @@ export default function Register({ onNavigate }) {
       <div className="glass-card max-w-md w-full p-8 relative z-10 border border-white/60 shadow-[0_20px_50px_rgba(0,33,71,0.08)]">
         {/* Back Link */}
         <button
-          onClick={() => onNavigate('welcome')}
+          onClick={() => go('welcome')}
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 mb-4 transition-colors"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Back to Welcome
@@ -300,7 +361,7 @@ export default function Register({ onNavigate }) {
           <p className="text-xs text-slate-500">
             Already have an account?{' '}
             <button
-              onClick={() => onNavigate('auth')}
+              onClick={() => go('auth')}
               className="text-indigo-600 font-medium hover:underline"
             >
               Log in

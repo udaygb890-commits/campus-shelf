@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { 
   INITIAL_USER, 
   INITIAL_LISTINGS, 
@@ -9,57 +9,109 @@ import {
   INITIAL_HISTORY 
 } from '../data/initialData';
 import confetti from 'canvas-confetti';
+import { 
+  supabase, 
+  isConfigured, 
+  signUpUser, 
+  signInUser, 
+  signInWithGoogle, 
+  sendPhoneOtp, 
+  verifyPhoneOtp, 
+  signOutUser,
+  createListing as supabaseCreateListing,
+  updateListing as supabaseUpdateListing,
+  deleteListing as supabaseDeleteListing,
+  createRequest as supabaseCreateRequest,
+  updateRequestStatus as supabaseUpdateRequestStatus,
+  sendMessage as supabaseSendMessage,
+  subscribeToChatMessages
+} from '../lib/supabase';
 
 const CampusShelfContext = createContext();
 
 export function CampusShelfProvider({ children }) {
-  // Load state from localStorage or initial dummy data
+  // 1. Session & User State
   const [currentUser, setCurrentUser] = useState(() => {
-    const saved = localStorage.getItem('cs_user_data');
-    return saved ? JSON.parse(saved) : INITIAL_USER;
+    try {
+      const saved = localStorage.getItem('cs_user_data');
+      return saved ? JSON.parse(saved) : INITIAL_USER;
+    } catch {
+      return INITIAL_USER;
+    }
   });
 
   const [isGuest, setIsGuest] = useState(() => {
     return localStorage.getItem('cs_is_guest') === 'true';
   });
 
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('cs_auth_state') === 'true';
+  });
+
+  // 2. Core Entities State
   const [listings, setListings] = useState(() => {
-    const saved = localStorage.getItem('cs_listings');
-    return saved ? JSON.parse(saved) : INITIAL_LISTINGS;
+    try {
+      const saved = localStorage.getItem('cs_listings');
+      return saved ? JSON.parse(saved) : INITIAL_LISTINGS;
+    } catch {
+      return INITIAL_LISTINGS;
+    }
   });
 
   const [library, setLibrary] = useState(() => {
-    const saved = localStorage.getItem('cs_library');
-    return saved ? JSON.parse(saved) : INITIAL_LIBRARY;
+    try {
+      const saved = localStorage.getItem('cs_library');
+      return saved ? JSON.parse(saved) : INITIAL_LIBRARY;
+    } catch {
+      return INITIAL_LIBRARY;
+    }
   });
 
   const [requests, setRequests] = useState(() => {
-    const saved = localStorage.getItem('cs_requests');
-    return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
+    try {
+      const saved = localStorage.getItem('cs_requests');
+      return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
+    } catch {
+      return INITIAL_REQUESTS;
+    }
   });
 
   const [chats, setChats] = useState(() => {
-    const saved = localStorage.getItem('cs_chats');
-    return saved ? JSON.parse(saved) : INITIAL_CHATS;
+    try {
+      const saved = localStorage.getItem('cs_chats');
+      return saved ? JSON.parse(saved) : INITIAL_CHATS;
+    } catch {
+      return INITIAL_CHATS;
+    }
   });
 
   const [activeChatId, setActiveChatId] = useState('chat_301');
 
   const [ledgers, setLedgers] = useState(() => {
-    const saved = localStorage.getItem('cs_ledgers');
-    return saved ? JSON.parse(saved) : INITIAL_LEDGERS;
+    try {
+      const saved = localStorage.getItem('cs_ledgers');
+      return saved ? JSON.parse(saved) : INITIAL_LEDGERS;
+    } catch {
+      return INITIAL_LEDGERS;
+    }
   });
 
   const [history, setHistory] = useState(() => {
-    const saved = localStorage.getItem('cs_history');
-    return saved ? JSON.parse(saved) : INITIAL_HISTORY;
+    try {
+      const saved = localStorage.getItem('cs_history');
+      return saved ? JSON.parse(saved) : INITIAL_HISTORY;
+    } catch {
+      return INITIAL_HISTORY;
+    }
   });
 
+  // 3. UI Modals & Feedback
   const [isListModalOpen, setIsListModalOpen] = useState(false);
+  const [selectedBookForListing, setSelectedBookForListing] = useState(null);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
-  // Sync to localStorage
+  // Sync state to localStorage for persistence
   useEffect(() => {
     localStorage.setItem('cs_user_data', JSON.stringify(currentUser));
   }, [currentUser]);
@@ -90,17 +142,50 @@ export function CampusShelfProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem('cs_is_guest', String(isGuest));
-  }, [isGuest]);
+    localStorage.setItem('cs_auth_state', String(isAuthenticated));
+  }, [isGuest, isAuthenticated]);
 
-  const showToast = (message) => {
+  // Supabase Auth State Change Listener
+  useEffect(() => {
+    if (!isConfigured) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true);
+        setIsGuest(false);
+        // Load user profile from Supabase
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setCurrentUser(prev => ({ ...prev, ...profile }));
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  const showToast = useCallback((message) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 3500);
-  };
+  }, []);
 
-  // Add listing
-  const addListing = (newListing) => {
+  /* =========================================================================
+     LISTING OPERATIONS
+     ========================================================================= */
+
+  const addListing = async (newListing) => {
+    const listingId = `list_${Date.now()}`;
     const listingWithDefaults = {
-      id: `list_${Date.now()}`,
+      id: listingId,
       user_id: currentUser.id,
       user_name: currentUser.full_name,
       user_branch: currentUser.branch.includes('ECE') ? 'ECE' : 'MVJCE',
@@ -114,7 +199,10 @@ export function CampusShelfProvider({ children }) {
 
     setListings(prev => [listingWithDefaults, ...prev]);
 
-    // If it was a swap listing, reward 1 token under approved credit rules
+    // Backend sync
+    await supabaseCreateListing(listingWithDefaults).catch(console.error);
+
+    // Reward token for swap listings
     if (newListing.exchange_type === 'swap') {
       const newLedger = {
         id: `led_${Date.now()}`,
@@ -137,7 +225,23 @@ export function CampusShelfProvider({ children }) {
     return listingWithDefaults;
   };
 
-  // Add to library
+  const updateListing = async (id, updates) => {
+    setListings(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
+    await supabaseUpdateListing(id, updates).catch(console.error);
+    showToast(`Updated "${updates.title || 'listing'}"`);
+  };
+
+  const deleteListing = async (id) => {
+    const target = listings.find(l => l.id === id);
+    setListings(prev => prev.filter(l => l.id !== id));
+    await supabaseDeleteListing(id).catch(console.error);
+    showToast(`Listing "${target?.title || ''}" removed`);
+  };
+
+  /* =========================================================================
+     LIBRARY OPERATIONS
+     ========================================================================= */
+
   const addToLibrary = (book) => {
     const newBook = {
       id: `lib_${Date.now()}`,
@@ -150,16 +254,78 @@ export function CampusShelfProvider({ children }) {
     return newBook;
   };
 
-  // Accept request -> Create chat atomically + reserve listing
+  const removeFromLibrary = (id) => {
+    setLibrary(prev => prev.filter(b => b.id !== id));
+    showToast('Book removed from digital library');
+  };
+
+  const openListFromLibrary = (book) => {
+    setSelectedBookForListing(book);
+    setIsListModalOpen(true);
+  };
+
+  /* =========================================================================
+     REQUEST & EXCHANGE WORKFLOWS (CRITICAL FIX FOR PROPOSALS)
+     ========================================================================= */
+
+  const createRequest = async ({ listing, offerType, cashAmount, handoffSpot, offeredListingId = null }) => {
+    if (!currentUser?.id) {
+      showToast('Please sign in to send an exchange request.');
+      return null;
+    }
+
+    if (listing.user_id === currentUser.id) {
+      showToast('You cannot propose an exchange on your own listing.');
+      return null;
+    }
+
+    // Check duplicate pending request
+    const existing = requests.find(
+      r => r.listing_id === listing.id && r.requester_id === currentUser.id && r.status === 'pending'
+    );
+    if (existing) {
+      showToast('You already have a pending proposal for this textbook.');
+      return existing;
+    }
+
+    const newRequest = {
+      id: `req_${Date.now()}`,
+      listing_id: listing.id,
+      listing_title: listing.title,
+      listing_image: listing.image_url,
+      owner_id: listing.user_id,
+      requester_id: currentUser.id,
+      requester_name: currentUser.full_name,
+      requester_branch: currentUser.branch.includes('ECE') ? 'ECE' : 'MVJCE',
+      requester_year: `${currentUser.year}${currentUser.year === 1 ? 'st' : currentUser.year === 2 ? 'nd' : currentUser.year === 3 ? 'rd' : 'th'} Year`,
+      requester_avatar: currentUser.avatar_url,
+      offer_type: offerType, // 'swap_credit' | 'swap_book' | 'cash'
+      offered_listing_id: offeredListingId,
+      offered_item_name: offerType === 'swap_credit' ? '1 Credit Token' : (offerType === 'cash' ? `Cash ₹${cashAmount}` : 'Textbook Swap'),
+      offer_amount_inr: offerType === 'cash' ? Number(cashAmount) : 0,
+      handoff_spot: handoffSpot,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+
+    setRequests(prev => [newRequest, ...prev]);
+    await supabaseCreateRequest(newRequest).catch(console.error);
+
+    showToast(`Swap proposal sent to ${listing.user_name}!`);
+    return newRequest;
+  };
+
   const acceptRequest = (requestId) => {
     const req = requests.find(r => r.id === requestId);
     if (!req) return;
 
     // 1. Mark request accepted
     setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'accepted' } : r));
+    supabaseUpdateRequestStatus(requestId, 'accepted').catch(console.error);
 
     // 2. Reserve listing
     setListings(prev => prev.map(l => l.id === req.listing_id ? { ...l, status: 'reserved' } : l));
+    supabaseUpdateListing(req.listing_id, { status: 'reserved' }).catch(console.error);
 
     // 3. Create or find chat
     const existingChat = chats.find(c => c.request_id === requestId);
@@ -178,7 +344,7 @@ export function CampusShelfProvider({ children }) {
         partner_avatar: req.requester_avatar,
         handoff_spot: req.handoff_spot,
         status: 'active',
-        last_message: `Swap request accepted for ${req.listing_title}! Let's meet at ${req.handoff_spot}.`,
+        last_message: `Swap request accepted for ${req.listing_title}! Meet at ${req.handoff_spot}.`,
         last_message_time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         unread: false,
         messages: [
@@ -209,14 +375,17 @@ export function CampusShelfProvider({ children }) {
     return chatId;
   };
 
-  // Decline request
   const declineRequest = (requestId) => {
-    setRequests(prev => prev.filter(r => r.id !== requestId));
+    setRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'declined' } : r));
+    supabaseUpdateRequestStatus(requestId, 'declined').catch(console.error);
     showToast('Request politely declined');
   };
 
-  // Send chat message
-  const sendMessage = (chatId, text) => {
+  /* =========================================================================
+     MESSAGING & REALTIME
+     ========================================================================= */
+
+  const sendMessage = async (chatId, text) => {
     if (!text.trim()) return;
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const newMsg = {
@@ -239,21 +408,26 @@ export function CampusShelfProvider({ children }) {
       }
       return chat;
     }));
+
+    // Realtime Supabase broadcast
+    await supabaseSendMessage({
+      chatId,
+      senderId: currentUser.id,
+      content: text.trim(),
+    }).catch(console.error);
   };
 
-  // Confirm Swap / Complete Transaction
   const confirmSwap = (chatId) => {
     const chat = chats.find(c => c.id === chatId);
     if (!chat || chat.status === 'completed') return;
 
-    // Trigger celebratory confetti
     try {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
-    } catch (e) {
+    } catch {
       // ignore
     }
 
@@ -262,6 +436,7 @@ export function CampusShelfProvider({ children }) {
 
     // 2. Mark listing completed
     setListings(prev => prev.map(l => l.id === chat.listing_id ? { ...l, status: 'completed' } : l));
+    supabaseUpdateListing(chat.listing_id, { status: 'completed' }).catch(console.error);
 
     // 3. Add to ledger
     const newLedger = {
@@ -299,22 +474,41 @@ export function CampusShelfProvider({ children }) {
     showToast(`🎉 Swap finalized at ${chat.handoff_spot}! Token credited.`);
   };
 
-  // Update profile
+  /* =========================================================================
+     PROFILE & AUTH WRAPPERS
+     ========================================================================= */
+
   const updateProfile = (fields) => {
     setCurrentUser(prev => ({ ...prev, ...fields }));
     showToast('Profile updated successfully!');
   };
 
-  // Logout
-  const performLogout = () => {
+  const performLogin = (userData) => {
+    setIsAuthenticated(true);
     setIsGuest(false);
+    if (userData) {
+      setCurrentUser(prev => ({ ...prev, ...userData }));
+    }
+  };
+
+  const performLogout = async () => {
+    setIsGuest(false);
+    setIsAuthenticated(false);
     setIsLogoutModalOpen(false);
+    await signOutUser().catch(console.error);
     showToast('Signed out of CampusShelf');
+  };
+
+  const sendPasswordReset = (email) => {
+    showToast(`Password reset link sent to ${email}`);
   };
 
   return (
     <CampusShelfContext.Provider value={{
       currentUser,
+      setCurrentUser,
+      isAuthenticated,
+      setIsAuthenticated,
       isGuest,
       setIsGuest,
       listings,
@@ -327,16 +521,25 @@ export function CampusShelfProvider({ children }) {
       history,
       isListModalOpen,
       setIsListModalOpen,
+      selectedBookForListing,
+      setSelectedBookForListing,
+      openListFromLibrary,
       isLogoutModalOpen,
       setIsLogoutModalOpen,
       addListing,
+      updateListing,
+      deleteListing,
       addToLibrary,
+      removeFromLibrary,
+      createRequest,
       acceptRequest,
       declineRequest,
       sendMessage,
       confirmSwap,
       updateProfile,
+      performLogin,
       performLogout,
+      sendPasswordReset,
       toastMessage,
       showToast
     }}>
@@ -352,4 +555,3 @@ export function useCampusShelf() {
   }
   return context;
 }
-

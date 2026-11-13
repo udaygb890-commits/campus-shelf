@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 import { 
+  HashRouter, 
+  Routes, 
+  Route, 
+  Navigate, 
+  Outlet, 
+  useLocation, 
+  useNavigate 
+} from 'react-router-dom';
+import { 
   CampusShelfProvider, 
   useCampusShelf 
 } from './context/CampusShelfContext';
@@ -21,55 +30,34 @@ import ProfileSettings from './components/ProfileSettings';
 import ListBookModal from './components/ListBookModal';
 import Logout from './components/Logout';
 import Toast from './components/Toast';
+import NotFound from './components/NotFound';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Mobile Navigation primitives
 import { BookOpen, Search, PlusCircle, MessageSquare, User, Menu, X } from 'lucide-react';
 
-function CampusShelfApp() {
-  const { currentUser, isGuest, setIsListModalOpen, requests, chats } = useCampusShelf();
-
-  // Root view: 'welcome' | 'register' | 'auth' | 'onboarding' | 'dashboard'
-  const [rootRoute, setRootRoute] = useState('welcome');
-
-  // Sub-view in dashboard: 'feed' | 'active_listings' | 'my_library' | 'history' | 'chat' | 'pending_requests' | 'credits' | 'profile'
-  const [dashboardView, setDashboardView] = useState('feed');
-
-  // Mobile drawer state
+/**
+ * Responsive Dashboard Layout containing Desktop Sidebar, Mobile Header & Bottom Navigation
+ */
+function DashboardLayout() {
+  const { currentUser, isGuest, setIsListModalOpen, requests } = useCampusShelf();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
 
-  const navigateTo = (view) => {
-    if (view === 'guest') {
-      setRootRoute('dashboard');
-      setDashboardView('feed');
-      return;
-    }
-    if (['welcome', 'register', 'auth', 'onboarding'].includes(view)) {
-      setRootRoute(view);
-      return;
-    }
-    // Otherwise it's a dashboard view
-    setRootRoute('dashboard');
-    setDashboardView(view);
-    setIsMobileMenuOpen(false);
+  const getActiveTab = () => {
+    const path = location.pathname;
+    if (path.includes('/dashboard/chat')) return 'chat';
+    if (path.includes('/dashboard/profile')) return 'profile';
+    if (path.includes('/dashboard/active-listings')) return 'active_listings';
+    if (path.includes('/dashboard/library')) return 'library';
+    return 'feed';
   };
 
-  // Render standalone auth flows
-  if (rootRoute === 'welcome') {
-    return <Welcome onNavigate={navigateTo} />;
-  }
-  if (rootRoute === 'register') {
-    return <Register onNavigate={navigateTo} />;
-  }
-  if (rootRoute === 'auth') {
-    return <Auth onNavigate={navigateTo} />;
-  }
-  if (rootRoute === 'onboarding') {
-    return <Onboarding onNavigate={navigateTo} />;
-  }
+  const activeTab = getActiveTab();
 
-  // Dashboard layout
   return (
     <div className="min-h-screen campus-canvas flex flex-col md:flex-row text-slate-800">
       {/* Mobile Top Header */}
@@ -77,12 +65,13 @@ function CampusShelfApp() {
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
+          aria-label="Toggle mobile menu"
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
 
         <div 
-          onClick={() => setDashboardView('feed')}
+          onClick={() => navigate('/dashboard/feed')}
           className="flex items-center gap-2 cursor-pointer"
         >
           <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
@@ -92,12 +81,13 @@ function CampusShelfApp() {
         </div>
 
         <button
-          onClick={() => setDashboardView('profile')}
+          onClick={() => navigate('/dashboard/profile')}
           className="w-8 h-8 rounded-full overflow-hidden border border-indigo-400/40"
+          aria-label="Profile settings"
         >
           <img
             src={currentUser.avatar_url}
-            alt=""
+            alt={currentUser.full_name || 'User Avatar'}
             className="w-full h-full object-cover"
           />
         </button>
@@ -105,38 +95,32 @@ function CampusShelfApp() {
 
       {/* Mobile Collapsible Navigation Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 md:hidden flex" onClick={() => setIsMobileMenuOpen(false)}>
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 md:hidden flex animate-in fade-in duration-200" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
           <div className="w-72 bg-[#002147] h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <Sidebar currentView={dashboardView} setCurrentView={navigateTo} />
+            <Sidebar setCurrentView={() => setIsMobileMenuOpen(false)} />
           </div>
         </div>
       )}
 
       {/* Desktop Persistent Left Sidebar */}
       <div className="hidden md:block">
-        <Sidebar currentView={dashboardView} setCurrentView={navigateTo} />
+        <Sidebar />
       </div>
 
       {/* Main Fluid Content Area */}
       <main className="flex-1 min-w-0 overflow-y-auto pb-20 md:pb-6">
-        {dashboardView === 'feed' && <Feed onOpenChat={() => setDashboardView('chat')} />}
-        {dashboardView === 'active_listings' && <ActiveListings />}
-        {dashboardView === 'my_library' && <MyLibrary />}
-        {dashboardView === 'history' && <History />}
-        {dashboardView === 'chat' && <Chat />}
-        {dashboardView === 'pending_requests' && (
-          <PendingRequests onOpenChat={() => setDashboardView('chat')} />
-        )}
-        {dashboardView === 'credits' && <CreditsLedger />}
-        {dashboardView === 'profile' && <ProfileSettings />}
+        <Outlet />
       </main>
 
       {/* Mobile Bottom Fixed Tab Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2 flex items-center justify-around shadow-lg">
         <button
-          onClick={() => setDashboardView('feed')}
+          onClick={() => navigate('/dashboard/feed')}
           className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            dashboardView === 'feed' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+            activeTab === 'feed' ? 'text-indigo-600 font-bold' : 'text-slate-500'
           }`}
         >
           <Search className="w-5 h-5" />
@@ -146,7 +130,7 @@ function CampusShelfApp() {
         <button
           onClick={() => {
             if (isGuest) {
-              alert('Please sign in to list a book.');
+              alert('Please sign in with your MVJCE email to list a book.');
               return;
             }
             setIsListModalOpen(true);
@@ -160,9 +144,9 @@ function CampusShelfApp() {
         </button>
 
         <button
-          onClick={() => setDashboardView('chat')}
+          onClick={() => navigate('/dashboard/chat')}
           className={`relative flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            dashboardView === 'chat' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+            activeTab === 'chat' ? 'text-indigo-600 font-bold' : 'text-slate-500'
           }`}
         >
           <MessageSquare className="w-5 h-5" />
@@ -173,29 +157,57 @@ function CampusShelfApp() {
         </button>
 
         <button
-          onClick={() => setDashboardView('profile')}
+          onClick={() => navigate('/dashboard/profile')}
           className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            dashboardView === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+            activeTab === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-500'
           }`}
         >
           <User className="w-5 h-5" />
           <span>Profile</span>
         </button>
       </nav>
-
-      {/* Global Modals & Notifications */}
-      <ListBookModal />
-      <Logout onConfirmLogout={() => setRootRoute('welcome')} />
-      <Toast />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <CampusShelfProvider>
-      <CampusShelfApp />
-    </CampusShelfProvider>
+    <ErrorBoundary>
+      <CampusShelfProvider>
+        <HashRouter>
+          <Routes>
+            {/* Public Entry & Authentication */}
+            <Route path="/" element={<Welcome />} />
+            <Route path="/welcome" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+
+            {/* Authenticated / Guest Dashboard Sub-Routes */}
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<Navigate to="feed" replace />} />
+              <Route path="feed" element={<Feed />} />
+              <Route path="active-listings" element={<ActiveListings />} />
+              <Route path="library" element={<MyLibrary />} />
+              <Route path="history" element={<History />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="chat/:chatId" element={<Chat />} />
+              <Route path="requests" element={<PendingRequests />} />
+              <Route path="credits" element={<CreditsLedger />} />
+              <Route path="profile" element={<ProfileSettings />} />
+            </Route>
+
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+
+          {/* Global Modals & Notifications */}
+          <ListBookModal />
+          <Logout />
+          <Toast />
+        </HashRouter>
+      </CampusShelfProvider>
+    </ErrorBoundary>
   );
 }
-

@@ -1,7 +1,24 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, ArrowRight, ShieldCheck, Sparkles, MapPin, Repeat } from 'lucide-react';
+import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function Welcome({ onNavigate }) {
+  const navigate = useNavigate();
+  const { setIsGuest } = useCampusShelf();
+
+  const go = (target) => {
+    if (onNavigate) {
+      onNavigate(target);
+    } else {
+      if (target === 'register') navigate('/register');
+      else if (target === 'auth') navigate('/auth');
+      else if (target === 'guest') {
+        setIsGuest(true);
+        navigate('/dashboard/feed');
+      }
+    }
+  };
   return (
     <div className="min-h-screen campus-canvas flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
       {/* Background Glows */}
@@ -40,14 +57,14 @@ export default function Welcome({ onNavigate }) {
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-xs mx-auto mb-6">
           <button
-            onClick={() => onNavigate('register')}
+            onClick={() => go('register')}
             className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] text-sm flex items-center justify-center gap-2"
           >
             Register.
           </button>
           
           <button
-            onClick={() => onNavigate('auth')}
+            onClick={() => go('auth')}
             className="w-full py-3.5 px-6 rounded-xl border-2 border-indigo-200/80 hover:border-indigo-600 hover:bg-indigo-50/50 text-indigo-700 font-medium transition-all active:scale-[0.98] text-sm"
           >
             Login.
@@ -57,7 +74,7 @@ export default function Welcome({ onNavigate }) {
         {/* Guest Read-Only Pass */}
         <div>
           <button
-            onClick={() => onNavigate('guest')}
+            onClick={() => go('guest')}
             className="text-xs text-slate-500 hover:text-slate-800 transition-colors underline underline-offset-4"
           >
             Explore marketplace as Guest (Read-Only)

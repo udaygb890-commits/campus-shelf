@@ -1,15 +1,21 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogOut, X, AlertTriangle } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function Logout({ onConfirmLogout }) {
+  const navigate = useNavigate();
   const { isLogoutModalOpen, setIsLogoutModalOpen, performLogout } = useCampusShelf();
 
   if (!isLogoutModalOpen) return null;
 
   const handleConfirm = () => {
     performLogout();
-    if (onConfirmLogout) onConfirmLogout();
+    if (onConfirmLogout) {
+      onConfirmLogout();
+    } else {
+      navigate('/');
+    }
   };
 
   return (

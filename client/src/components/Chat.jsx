@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   Send, 
   MapPin, 
@@ -15,6 +16,7 @@ import { useCampusShelf } from '../context/CampusShelfContext';
 import { MVJCE_LANDMARKS } from '../data/initialData';
 
 export default function Chat() {
+  const { chatId: urlChatId } = useParams();
   const { 
     chats, 
     activeChatId, 
@@ -28,6 +30,12 @@ export default function Chat() {
   const [inputMessage, setInputMessage] = useState('');
   const [showLandmarkPicker, setShowLandmarkPicker] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (urlChatId && urlChatId !== activeChatId) {
+      setActiveChatId(urlChatId);
+    }
+  }, [urlChatId, activeChatId, setActiveChatId]);
 
   const activeChat = chats.find(c => c.id === activeChatId) || chats[0];
 

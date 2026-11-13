@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, MapPin, GraduationCap, Building2, Calendar, Check, RefreshCw } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 import { MVJCE_DEPARTMENTS, CAMPUS_ZONES, MVJCE_LANDMARKS } from '../data/initialData';
 
 export default function Onboarding({ onNavigate }) {
+  const navigate = useNavigate();
   const { currentUser, updateProfile, showToast } = useCampusShelf();
 
   const [branch, setBranch] = useState(currentUser.branch || '');
@@ -29,7 +31,11 @@ export default function Onboarding({ onNavigate }) {
         onboarding_completed: true
       });
       showToast('Welcome to MVJCE CampusShelf!');
-      onNavigate('feed');
+      if (onNavigate) {
+        onNavigate('feed');
+      } else {
+        navigate('/dashboard/feed');
+      }
     }, 800);
   };
 
