@@ -18,6 +18,8 @@ import {
   sendPhoneOtp, 
   verifyPhoneOtp, 
   signOutUser,
+  resetPassword,
+  updatePassword,
   createListing as supabaseCreateListing,
   updateListing as supabaseUpdateListing,
   deleteListing as supabaseDeleteListing,
@@ -145,26 +147,71 @@ export function CampusShelfProvider({ children }) {
     localStorage.setItem('cs_auth_state', String(isAuthenticated));
   }, [isGuest, isAuthenticated]);
 
-  // Supabase Auth State Change Listener
-  useEffect(() => {
-    if (!isConfigured) return;
+  const [isAuthLoading, setIsAuthLoading] = useState(isConfigured);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+  // Supabase Auth State Change & Session Restoration
+  useEffect(() => {
+    if (!isConfigured) {
+      setIsAuthLoading(false);
+      return;
+    }
+
+    // 1. Initial Session Retrieval
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setIsAuthenticated(true);
         setIsGuest(false);
-        // Load user profile from Supabase
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profile) {
-          setCurrentUser(prev => ({ ...prev, ...profile }));
+          if (profile) {
+            setCurrentUser(prev => ({ ...prev, ...profile }));
+          } else {
+            // Profile fallback if trigger delayed or OAuth first sign-in
+            const newProfile = {
+              id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+              college_email: session.user.email,
+              branch: session.user.user_metadata?.branch || 'First Year Basic Sciences',
+              year: Number(session.user.user_metadata?.year) || 1,
+              credit_balance: 1,
+              campus_zone: 'Day Scholar',
+              default_handoff: 'ECE Block Lobby',
+              role: 'student'
+            };
+            await supabase.from('profiles').upsert(newProfile, { onConflict: 'id' }).catch(() => {});
+            setCurrentUser(prev => ({ ...prev, ...newProfile }));
+          }
+        } catch (err) {
+          console.warn('Profile sync error:', err);
+        }
+      }
+      setIsAuthLoading(false);
+    });
+
+    // 2. Real-time Auth Event Subscription
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setIsGuest(false);
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            setCurrentUser(prev => ({ ...prev, ...profile }));
+          }
         }
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
+        setIsGuest(false);
       }
     });
 
@@ -499,8 +546,34 @@ export function CampusShelfProvider({ children }) {
     showToast('Signed out of CampusShelf');
   };
 
-  const sendPasswordReset = (email) => {
-    showToast(`Password reset link sent to ${email}`);
+  const sendPasswordReset = async (email) => {
+    try {
+      const { data, error } = await resetPassword(email);
+      if (error) {
+        showToast(error.message || 'Failed to send recovery link');
+        return { success: false, error: error.message };
+      }
+      showToast(`Password recovery link sent to ${email}`);
+      return { success: true };
+    } catch (err) {
+      showToast(err.message || 'Error sending recovery link');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const updateStudentPassword = async (newPassword) => {
+    try {
+      const { data, error } = await updatePassword(newPassword);
+      if (error) {
+        showToast(error.message || 'Failed to update password');
+        return { success: false, error: error.message };
+      }
+      showToast('Password updated successfully!');
+      return { success: true };
+    } catch (err) {
+      showToast(err.message || 'Error updating password');
+      return { success: false, error: err.message };
+    }
   };
 
   return (
@@ -509,6 +582,7 @@ export function CampusShelfProvider({ children }) {
       setCurrentUser,
       isAuthenticated,
       setIsAuthenticated,
+      isAuthLoading,
       isGuest,
       setIsGuest,
       listings,
@@ -540,6 +614,7 @@ export function CampusShelfProvider({ children }) {
       performLogin,
       performLogout,
       sendPasswordReset,
+      updateStudentPassword,
       toastMessage,
       showToast
     }}>

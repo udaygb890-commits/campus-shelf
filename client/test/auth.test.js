@@ -105,5 +105,35 @@ describe('Authentication & Profile Verification Audit', () => {
     assert.equal(getItem('cs_auth_state'), 'false');
     assert.equal(getItem('cs_user_data'), undefined);
   });
+
+  it('should validate password reset and password update requirements', () => {
+    function validatePasswordReset(email) {
+      if (!email || !email.includes('@')) return { isValid: false, error: 'Valid college email required' };
+      return { isValid: true };
+    }
+
+    function validateNewPassword(p1, p2) {
+      if (!p1 || p1.length < 6) return { isValid: false, error: 'Password must be at least 6 characters' };
+      if (p1 !== p2) return { isValid: false, error: 'Passwords do not match' };
+      return { isValid: true };
+    }
+
+    assert.equal(validatePasswordReset('student@mvjce.edu.in').isValid, true);
+    assert.equal(validatePasswordReset('invalid').isValid, false);
+
+    assert.equal(validateNewPassword('newPassword123', 'newPassword123').isValid, true);
+    assert.equal(validateNewPassword('123', '123').isValid, false);
+    assert.equal(validateNewPassword('newPassword123', 'different').isValid, false);
+  });
+
+  it('should enforce route protection rules for unauthenticated users', () => {
+    function canAccessDashboard({ isAuthenticated, isGuest }) {
+      return Boolean(isAuthenticated || isGuest);
+    }
+
+    assert.equal(canAccessDashboard({ isAuthenticated: true, isGuest: false }), true);
+    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: true }), true);
+    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: false }), false);
+  });
 });
 

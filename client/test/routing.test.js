@@ -6,6 +6,8 @@ describe('Routing & Link Navigation Audit', () => {
     '/',
     '/register',
     '/auth',
+    '/auth/callback',
+    '/auth/reset-password',
     '/onboarding',
     '/dashboard/feed',
     '/dashboard/active-listings',

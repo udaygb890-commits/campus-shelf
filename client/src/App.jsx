@@ -17,6 +17,9 @@ import {
 import Welcome from './components/Welcome';
 import Register from './components/Register';
 import Auth from './components/Auth';
+import AuthCallback from './components/AuthCallback';
+import ResetPassword from './components/ResetPassword';
+import ProtectedRoute from './components/ProtectedRoute';
 import Onboarding from './components/Onboarding';
 import Sidebar from './components/Sidebar';
 import Feed from './components/Feed';
@@ -260,20 +263,24 @@ export default function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
-            {/* Authenticated / Guest Dashboard Sub-Routes */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<Navigate to="feed" replace />} />
-              <Route path="feed" element={<Feed />} />
-              <Route path="active-listings" element={<ActiveListings />} />
-              <Route path="library" element={<MyLibrary />} />
-              <Route path="history" element={<History />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="chat/:chatId" element={<Chat />} />
-              <Route path="requests" element={<PendingRequests />} />
-              <Route path="credits" element={<CreditsLedger />} />
-              <Route path="profile" element={<ProfileSettings />} />
+            {/* Authenticated / Guest Dashboard Sub-Routes with Route Protection */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Navigate to="feed" replace />} />
+                <Route path="feed" element={<Feed />} />
+                <Route path="active-listings" element={<ActiveListings />} />
+                <Route path="library" element={<MyLibrary />} />
+                <Route path="history" element={<History />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="chat/:chatId" element={<Chat />} />
+                <Route path="requests" element={<PendingRequests />} />
+                <Route path="credits" element={<CreditsLedger />} />
+                <Route path="profile" element={<ProfileSettings />} />
+              </Route>
             </Route>
 
             {/* 404 Route */}

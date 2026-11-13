@@ -40,14 +40,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
    AUTH SERVICES
    ========================================================================= */
 
-export async function signUpUser({ email, password, fullName, phone }) {
+export async function signUpUser({ email, password, fullName, phone, branch, year }) {
   if (!isConfigured) {
     return {
       data: {
         user: {
           id: `usr_${Date.now()}`,
           email,
-          user_metadata: { full_name: fullName, phone }
+          user_metadata: { full_name: fullName, phone, branch, year }
         },
         session: { access_token: `mock_token_${Date.now()}` }
       },
@@ -62,7 +62,10 @@ export async function signUpUser({ email, password, fullName, phone }) {
       data: {
         full_name: fullName,
         phone_number: phone,
+        branch: branch || 'Computer Science & Engineering',
+        year: year || 1,
       },
+      emailRedirectTo: `${window.location.origin}${window.location.pathname}#/dashboard/feed`,
     },
   });
 
@@ -98,12 +101,29 @@ export async function signInWithGoogle() {
   return await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/#/dashboard/feed`,
+      redirectTo: `${window.location.origin}${window.location.pathname}#/auth/callback`,
       queryParams: {
         hd: 'mvjce.edu.in', // Request institutional domain restriction
+        prompt: 'select_account',
       },
     },
   });
+}
+
+export async function resetPassword(email) {
+  if (!isConfigured) {
+    return { data: { message: 'Reset email simulated' }, error: null };
+  }
+  return await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}${window.location.pathname}#/auth/reset-password`,
+  });
+}
+
+export async function updatePassword(newPassword) {
+  if (!isConfigured) {
+    return { data: { message: 'Password updated successfully' }, error: null };
+  }
+  return await supabase.auth.updateUser({ password: newPassword });
 }
 
 export async function sendPhoneOtp(phone) {
