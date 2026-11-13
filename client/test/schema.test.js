@@ -45,3 +45,4 @@ describe('Supabase Database Schema & RLS Audit', () => {
     assert.ok(sql.includes('Participants can send messages'), 'repaired message RLS policy must be defined');
   });
 });
+

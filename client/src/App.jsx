@@ -33,11 +33,23 @@ import Toast from './components/Toast';
 import NotFound from './components/NotFound';
 import ErrorBoundary from './components/ErrorBoundary';
 
-// Mobile Navigation primitives
-import { BookOpen, Search, PlusCircle, MessageSquare, User, Menu, X } from 'lucide-react';
+// Icons
+import { 
+  BookOpen, 
+  Search, 
+  Plus, 
+  MessageSquare, 
+  User, 
+  Menu, 
+  X, 
+  Coins, 
+  ShieldCheck, 
+  Bell,
+  SlidersHorizontal 
+} from 'lucide-react';
 
 /**
- * Responsive Dashboard Layout containing Desktop Sidebar, Mobile Header & Bottom Navigation
+ * Responsive Dashboard Layout containing Desktop Sidebar, Top Navigation Header & Mobile Nav
  */
 function DashboardLayout() {
   const { currentUser, isGuest, setIsListModalOpen, requests } = useCampusShelf();
@@ -47,25 +59,37 @@ function DashboardLayout() {
 
   const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
 
+  const getBreadcrumb = () => {
+    const path = location.pathname;
+    if (path.includes('/dashboard/active-listings')) return { section: 'My Shelf', title: 'Active Listings' };
+    if (path.includes('/dashboard/library')) return { section: 'My Shelf', title: 'My Digital Library' };
+    if (path.includes('/dashboard/history')) return { section: 'My Shelf', title: 'Exchange History' };
+    if (path.includes('/dashboard/chat')) return { section: 'Communications', title: 'Messages & Handoffs' };
+    if (path.includes('/dashboard/requests')) return { section: 'Communications', title: 'Swap Requests' };
+    if (path.includes('/dashboard/credits')) return { section: 'Account', title: 'Credits & Ledger' };
+    if (path.includes('/dashboard/profile')) return { section: 'Account', title: 'Profile & Settings' };
+    return { section: 'Marketplace', title: 'Browse Textbooks' };
+  };
+
+  const breadcrumb = getBreadcrumb();
+
   const getActiveTab = () => {
     const path = location.pathname;
     if (path.includes('/dashboard/chat')) return 'chat';
     if (path.includes('/dashboard/profile')) return 'profile';
-    if (path.includes('/dashboard/active-listings')) return 'active_listings';
-    if (path.includes('/dashboard/library')) return 'library';
     return 'feed';
   };
 
   const activeTab = getActiveTab();
 
   return (
-    <div className="min-h-screen campus-canvas flex flex-col md:flex-row text-slate-800">
+    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row text-slate-900">
       {/* Mobile Top Header */}
-      <header className="md:hidden bg-[#002147] text-white px-4 py-3.5 flex items-center justify-between border-b border-white/10 sticky top-0 z-30 shadow-md">
+      <header className="md:hidden bg-[#0A1628] text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-subtle">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
-          aria-label="Toggle mobile menu"
+          aria-label="Toggle mobile navigation menu"
         >
           {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -74,20 +98,20 @@ function DashboardLayout() {
           onClick={() => navigate('/dashboard/feed')}
           className="flex items-center gap-2 cursor-pointer"
         >
-          <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
-            <BookOpen className="w-4 h-4 text-white" />
+          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+            <BookOpen className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold text-base tracking-tight">Campus<span className="text-indigo-400">Shelf</span></span>
+          <span className="font-semibold text-sm tracking-tight">Campus<span className="text-indigo-400">Shelf</span></span>
         </div>
 
         <button
           onClick={() => navigate('/dashboard/profile')}
-          className="w-8 h-8 rounded-full overflow-hidden border border-indigo-400/40"
+          className="w-7 h-7 rounded-full overflow-hidden border border-slate-700"
           aria-label="Profile settings"
         >
           <img
-            src={currentUser.avatar_url}
-            alt={currentUser.full_name || 'User Avatar'}
+            src={currentUser.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}
+            alt=""
             className="w-full h-full object-cover"
           />
         </button>
@@ -96,10 +120,10 @@ function DashboardLayout() {
       {/* Mobile Collapsible Navigation Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/60 md:hidden flex animate-in fade-in duration-200" 
+          className="fixed inset-0 z-40 bg-slate-950/70 md:hidden flex animate-in fade-in duration-200" 
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="w-72 bg-[#002147] h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-64 bg-[#0A1628] h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <Sidebar setCurrentView={() => setIsMobileMenuOpen(false)} />
           </div>
         </div>
@@ -110,21 +134,70 @@ function DashboardLayout() {
         <Sidebar />
       </div>
 
-      {/* Main Fluid Content Area */}
-      <main className="flex-1 min-w-0 overflow-y-auto pb-20 md:pb-6">
-        <Outlet />
-      </main>
+      {/* Main Fluid Application Shell */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        {/* Desktop Top Header Bar */}
+        <header className="hidden md:flex h-14 bg-white border-b border-slate-200 px-6 items-center justify-between sticky top-0 z-20 shadow-subtle">
+          {/* Breadcrumb Context */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 font-medium">{breadcrumb.section}</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-800 font-semibold">{breadcrumb.title}</span>
+          </div>
+
+          {/* Quick Header Actions */}
+          <div className="flex items-center gap-3">
+            {/* Campus Verified Badge */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200/80">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>MVJCE Campus Network</span>
+            </div>
+
+            {/* Credit Wallet Pill */}
+            {!isGuest && (
+              <button
+                onClick={() => navigate('/dashboard/credits')}
+                className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-indigo-50 text-indigo-800 text-xs font-medium border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                title="View Credits & Wallet Ledger"
+              >
+                <Coins className="w-3.5 h-3.5 text-indigo-600" />
+                <span>{currentUser?.credit_balance ?? 0} Credits</span>
+              </button>
+            )}
+
+            {/* List Book Primary Action */}
+            <button
+              onClick={() => {
+                if (isGuest) {
+                  alert('Please sign in with your MVJCE email to list a book.');
+                  return;
+                }
+                setIsListModalOpen(true);
+              }}
+              className="app-btn-primary py-1.5 px-3 text-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>List Book</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content Body */}
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-8">
+          <Outlet />
+        </main>
+      </div>
 
       {/* Mobile Bottom Fixed Tab Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-4 py-2 flex items-center justify-around shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-slate-200 px-4 py-2 flex items-center justify-around shadow-subtle">
         <button
           onClick={() => navigate('/dashboard/feed')}
-          className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            activeTab === 'feed' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
+            activeTab === 'feed' ? 'text-indigo-600 font-semibold' : 'text-slate-500'
           }`}
         >
-          <Search className="w-5 h-5" />
-          <span>Home</span>
+          <Search className="w-4 h-4" />
+          <span>Browse</span>
         </button>
 
         <button
@@ -135,34 +208,34 @@ function DashboardLayout() {
             }
             setIsListModalOpen(true);
           }}
-          className="flex flex-col items-center gap-1 text-[10px] font-medium text-indigo-600"
+          className="flex flex-col items-center gap-1 text-[11px] font-medium text-slate-700"
         >
-          <div className="w-9 h-9 -mt-4 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 border-2 border-white">
-            <PlusCircle className="w-5 h-5" />
+          <div className="w-7 h-7 rounded-md bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+            <Plus className="w-4 h-4 stroke-[2.5]" />
           </div>
-          <span>List Book</span>
+          <span>List</span>
         </button>
 
         <button
           onClick={() => navigate('/dashboard/chat')}
-          className={`relative flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            activeTab === 'chat' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+          className={`relative flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
+            activeTab === 'chat' ? 'text-indigo-600 font-semibold' : 'text-slate-500'
           }`}
         >
-          <MessageSquare className="w-5 h-5" />
-          <span>Chat</span>
+          <MessageSquare className="w-4 h-4" />
+          <span>Messages</span>
           {pendingRequestsCount > 0 && (
-            <span className="absolute top-0 right-1 w-2 h-2 rounded-full bg-amber-500" />
+            <span className="absolute -top-1 right-2 w-2 h-2 rounded-full bg-amber-500" />
           )}
         </button>
 
         <button
           onClick={() => navigate('/dashboard/profile')}
-          className={`flex flex-col items-center gap-1 text-[10px] font-medium transition-colors ${
-            activeTab === 'profile' ? 'text-indigo-600 font-bold' : 'text-slate-500'
+          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
+            activeTab === 'profile' ? 'text-indigo-600 font-semibold' : 'text-slate-500'
           }`}
         >
-          <User className="w-5 h-5" />
+          <User className="w-4 h-4" />
           <span>Profile</span>
         </button>
       </nav>

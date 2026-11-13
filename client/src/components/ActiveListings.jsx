@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Edit3, Trash2, Eye, MapPin, Repeat, Banknote, Sparkles, Plus, AlertCircle } from 'lucide-react';
+import { Search, Edit2, Trash2, Eye, MapPin, Plus, BookOpen, Layers, X, Check } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
+import { MVJCE_LANDMARKS } from '../data/initialData';
 
 export default function ActiveListings() {
   const { listings, currentUser, setIsListModalOpen, updateListing, deleteListing, showToast } = useCampusShelf();
@@ -10,44 +11,39 @@ export default function ActiveListings() {
   const [selectedYear, setSelectedYear] = useState('All');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
-  const [activeTag, setActiveTag] = useState('All');
 
   // Edit modal state
   const [editingBook, setEditingBook] = useState(null);
 
-  const TAGS = ['All', 'Engineering', 'Novels', 'Notes', 'PyQs'];
-
   // Current user's listings
   const myListings = useMemo(() => {
     return listings.filter(item => {
-      // Must belong to current user
       if (item.user_id !== currentUser.id) return false;
-
-      // Status
       if (selectedStatus !== 'All' && item.status !== selectedStatus.toLowerCase()) return false;
-
-      // Search
       if (search.trim()) {
         const q = search.toLowerCase();
         if (!item.title.toLowerCase().includes(q) && !item.author.toLowerCase().includes(q)) return false;
       }
-
-      // Tag filter
-      if (activeTag === 'Engineering' && item.category !== 'Engineering Textbook') return false;
-      if (activeTag === 'Novels' && item.category !== 'General Novel') return false;
-      if (activeTag === 'Notes' && !item.category.includes('Notes')) return false;
-      if (activeTag === 'PyQs' && !item.category.includes('PYQs')) return false;
-
       return true;
     });
-  }, [listings, currentUser.id, selectedStatus, search, activeTag]);
+  }, [listings, currentUser.id, selectedStatus, search]);
+
+  const stats = useMemo(() => {
+    const userItems = listings.filter(l => l.user_id === currentUser.id);
+    return {
+      total: userItems.length,
+      available: userItems.filter(l => l.status === 'available').length,
+      reserved: userItems.filter(l => l.status === 'reserved').length,
+      completed: userItems.filter(l => l.status === 'completed').length
+    };
+  }, [listings, currentUser.id]);
 
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!editingBook) return;
     await updateListing(editingBook.id, {
-      title: editingBook.title,
-      author: editingBook.author,
+      title: editingBook.title.trim(),
+      author: editingBook.author.trim(),
       handoff_spot: editingBook.handoff_spot,
     });
     setEditingBook(null);
@@ -60,120 +56,93 @@ export default function ActiveListings() {
   };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
         <div>
-          <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-slate-900 tracking-tight">
-            Active Listings
-          </h2>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+            My Active Listings
+          </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage your textbooks and active book listings in the campus exchange
+            Manage your books currently active or reserved in the MVJCE marketplace
           </p>
         </div>
 
         <button
           onClick={() => setIsListModalOpen(true)}
-          className="self-start sm:self-auto py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all"
+          className="app-btn-primary text-xs py-2 px-3.5 self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-3.5 h-3.5" />
           <span>List Another Book</span>
         </button>
       </div>
 
-      {/* Controls Section */}
-      <div className="glass-card p-4 border border-white/70 space-y-3.5">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search my listings..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full glass-input text-xs pl-10"
-            />
-          </div>
-
-          {/* Filter Dropdowns: Year, Dept, Status */}
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              className="glass-input text-xs py-2 px-3 bg-white/70 cursor-pointer"
-            >
-              <option value="All">All Years</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-            </select>
-
-            <select
-              value={selectedDept}
-              onChange={(e) => setSelectedDept(e.target.value)}
-              className="glass-input text-xs py-2 px-3 bg-white/70 cursor-pointer"
-            >
-              <option value="All">All Depts</option>
-              <option value="ECE">ECE</option>
-              <option value="CSE">CSE</option>
-              <option value="Mech">Mech</option>
-            </select>
-
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="glass-input text-xs py-2 px-3 bg-white/70 cursor-pointer font-medium text-slate-700"
-            >
-              <option value="All">All Statuses</option>
-              <option value="Available">Available</option>
-              <option value="Reserved">Reserved</option>
-              <option value="Completed">Completed</option>
-            </select>
-          </div>
+      {/* Metrics Row (Disciplined, non-bloated counters) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="app-card p-3.5">
+          <span className="text-[11px] font-medium text-slate-500 block">Total Listed</span>
+          <span className="text-xl font-semibold text-slate-900 mt-0.5 block">{stats.total}</span>
         </div>
-
-        {/* Filter Tags: Horizontal scrollable row */}
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
-          {TAGS.map((tag) => {
-            const isActive = activeTag === tag;
-            return (
-              <button
-                key={tag}
-                onClick={() => setActiveTag(tag)}
-                className={`py-1 px-3.5 rounded-full text-xs font-medium transition-all ${
-                  isActive
-                    ? 'bg-indigo-600 text-white shadow-sm'
-                    : 'bg-white/70 text-slate-600 border border-slate-200/80 hover:bg-white'
-                }`}
-              >
-                {tag}
-              </button>
-            );
-          })}
+        <div className="app-card p-3.5">
+          <span className="text-[11px] font-medium text-slate-500 block">Available</span>
+          <span className="text-xl font-semibold text-emerald-700 mt-0.5 block">{stats.available}</span>
+        </div>
+        <div className="app-card p-3.5">
+          <span className="text-[11px] font-medium text-slate-500 block">Reserved in Chat</span>
+          <span className="text-xl font-semibold text-amber-700 mt-0.5 block">{stats.reserved}</span>
+        </div>
+        <div className="app-card p-3.5">
+          <span className="text-[11px] font-medium text-slate-500 block">Completed Swaps</span>
+          <span className="text-xl font-semibold text-slate-700 mt-0.5 block">{stats.completed}</span>
         </div>
       </div>
 
-      {/* Listings Feed (Scrollable Vertical Stack) */}
+      {/* Filters & Search */}
+      <div className="app-card p-3.5 flex flex-col sm:flex-row gap-2.5">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search your listings by title or author..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="app-input w-full pl-9"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="app-input text-xs py-2 px-3 cursor-pointer"
+          >
+            <option value="All">All Statuses</option>
+            <option value="Available">Available</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Listings Collection */}
       {myListings.length === 0 ? (
-        <div className="glass-card p-12 text-center border border-white/60">
-          <Sparkles className="w-8 h-8 text-indigo-400 mx-auto mb-3" />
-          <h3 className="font-serif text-lg font-medium text-slate-800 mb-1">
-            No active listings found
-          </h3>
-          <p className="text-xs text-slate-500 mb-4">
-            You don't have any books listed under this filter.
+        <div className="app-card p-12 text-center">
+          <div className="w-12 h-12 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+            <Layers className="w-6 h-6 stroke-[1.8]" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 mb-1">No listings found</h3>
+          <p className="text-xs text-slate-500 mb-4 max-w-sm mx-auto">
+            You don't have any textbooks matching the selected filter.
           </p>
           <button
             onClick={() => setIsListModalOpen(true)}
-            className="py-2 px-4 rounded-xl bg-indigo-600 text-white text-xs font-medium"
+            className="app-btn-primary text-xs"
           >
-            List a Book Now
+            List a Textbook
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="app-card divide-y divide-slate-100 overflow-hidden">
           {myListings.map((book) => {
             const isAvailable = book.status === 'available';
             const isReserved = book.status === 'reserved';
@@ -181,24 +150,24 @@ export default function ActiveListings() {
             return (
               <div
                 key={book.id}
-                className="glass-card p-3 sm:p-4 border border-white/80 hover:border-indigo-300 transition-all hover:shadow-md flex items-center justify-between gap-4"
+                className="p-4 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 {/* Left: Thumbnail & Details */}
-                <div className="flex items-center gap-4 min-w-0">
+                <div className="flex items-center gap-3.5 min-w-0">
                   <img
                     src={book.image_url}
                     alt={book.title}
-                    className="w-14 h-18 sm:w-16 sm:h-20 object-cover rounded-xl shadow-sm border border-slate-100 flex-shrink-0"
+                    className="w-12 h-16 object-cover rounded border border-slate-200 flex-shrink-0"
                   />
                   <div className="min-w-0 space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wide">
+                      <span className="text-[10px] font-semibold text-indigo-700 uppercase">
                         {book.subject_code || book.category}
                       </span>
-                      <span className="text-[10px] text-slate-400">• Sem {book.semester}</span>
+                      <span className="text-[11px] text-slate-400">• Sem {book.semester}</span>
                     </div>
 
-                    <h4 className="font-serif text-sm font-semibold text-slate-900 truncate">
+                    <h4 className="text-sm font-semibold text-slate-900 truncate">
                       {book.title}
                     </h4>
 
@@ -207,45 +176,45 @@ export default function ActiveListings() {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                      {/* Status Tag */}
+                      {/* Status Badge */}
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
                           isAvailable
-                            ? 'bg-emerald-100 text-emerald-700'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : isReserved
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-amber-50 text-amber-800 border-amber-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
                         }`}
                       >
                         {isAvailable ? 'Available' : isReserved ? 'Reserved in Chat' : 'Completed'}
                       </span>
 
-                      {/* Views Count */}
-                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                        <Eye className="w-3 h-3" /> Views: {book.views}
+                      <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                        <Eye className="w-3 h-3 text-slate-400" /> {book.views} views
                       </span>
 
-                      {/* Handoff Spot */}
-                      <span className="text-[11px] text-slate-500 flex items-center gap-1 hidden sm:flex">
-                        <MapPin className="w-3 h-3 text-indigo-500" /> {book.handoff_spot}
+                      <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400" /> {book.handoff_spot}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex items-center gap-2 self-end sm:self-center">
                   <button
                     onClick={() => setEditingBook(book)}
+                    className="app-btn-secondary text-xs py-1.5 px-3"
                     title="Edit listing details"
-                    className="p-2.5 rounded-xl border border-slate-200/80 hover:border-indigo-400 bg-white/70 hover:bg-white text-slate-700 hover:text-indigo-600 transition-all shadow-sm"
                   >
-                    <Edit3 className="w-4 h-4" />
+                    <Edit2 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
                   </button>
+
                   <button
                     onClick={() => handleDelete(book.id, book.title)}
-                    title="Remove listing"
-                    className="p-2.5 rounded-xl border border-red-200/80 hover:border-red-400 bg-red-50/50 hover:bg-red-50 text-red-600 transition-all shadow-sm"
+                    className="p-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-colors"
+                    title="Delete listing"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -258,54 +227,66 @@ export default function ActiveListings() {
 
       {/* Edit Listing Modal */}
       {editingBook && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass-card max-w-md w-full p-6 border border-white/80 shadow-2xl relative">
-            <h3 className="font-serif text-lg font-semibold text-slate-900 mb-3">
-              Edit Listing: {editingBook.title}
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="app-card max-w-md w-full p-6 shadow-modal relative animate-in fade-in zoom-in-95 duration-150">
+            <button
+              onClick={() => setEditingBook(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-base font-semibold text-slate-900 mb-4">
+              Edit Listing
             </h3>
 
-            <form onSubmit={handleSaveEdit} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveEdit} className="space-y-4">
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Title</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Book Title</label>
                 <input
                   type="text"
                   value={editingBook.title}
                   onChange={(e) => setEditingBook({ ...editingBook, title: e.target.value })}
-                  className="w-full glass-input text-xs"
+                  className="app-input w-full"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Author</label>
+                <label className="block text-xs font-medium text-slate-700 mb-1">Author Name</label>
                 <input
                   type="text"
                   value={editingBook.author}
                   onChange={(e) => setEditingBook({ ...editingBook, author: e.target.value })}
-                  className="w-full glass-input text-xs"
+                  className="app-input w-full"
+                  required
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-slate-700 mb-1">Handoff Landmark</label>
-                <input
-                  type="text"
+                <label className="block text-xs font-medium text-slate-700 mb-1">Handoff Landmark</label>
+                <select
                   value={editingBook.handoff_spot}
                   onChange={(e) => setEditingBook({ ...editingBook, handoff_spot: e.target.value })}
-                  className="w-full glass-input text-xs"
-                />
+                  className="app-input w-full cursor-pointer"
+                >
+                  {MVJCE_LANDMARKS.map(spot => (
+                    <option key={spot} value={spot}>{spot}</option>
+                  ))}
+                </select>
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingBook(null)}
-                  className="py-2 px-3 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  className="app-btn-secondary text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-sm"
+                  className="app-btn-primary text-xs"
                 >
                   Save Changes
                 </button>
@@ -317,4 +298,3 @@ export default function ActiveListings() {
     </div>
   );
 }
-

@@ -58,3 +58,4 @@ describe('Routing & Link Navigation Audit', () => {
     assert.equal(resolveRoute('/admin/backdoor'), '/404');
   });
 });
+

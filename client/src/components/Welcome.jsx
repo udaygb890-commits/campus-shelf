@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, ArrowRight, ShieldCheck, Sparkles, MapPin, Repeat } from 'lucide-react';
+import { BookOpen, ArrowRight, ShieldCheck, Repeat, Lock, MapPin, CheckCircle2 } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function Welcome({ onNavigate }) {
@@ -19,85 +19,110 @@ export default function Welcome({ onNavigate }) {
       }
     }
   };
+
   return (
-    <div className="min-h-screen campus-canvas flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-blue-100/50 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-indigo-100/50 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Main Glass Hero Card */}
-      <div className="glass-card max-w-xl w-full p-8 sm:p-12 text-center relative z-10 border border-white/60 shadow-[0_20px_50px_rgba(0,33,71,0.08)]">
-        {/* Brand Logo */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-[#002147] text-white flex items-center justify-center shadow-md shadow-navy-900/20">
-            <BookOpen className="w-6 h-6 stroke-[2.2]" />
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between selection:bg-slate-200">
+      {/* Top Navbar */}
+      <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-8 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#002147] text-white flex items-center justify-center font-bold shadow-sm">
+            <BookOpen className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-[#002147] font-sans">
-            Campus<span className="text-indigo-600">Shelf</span>
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-base tracking-tight text-slate-900">CampusShelf</span>
+            <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">MVJCE</span>
+          </div>
         </div>
 
-        {/* Serif Headline */}
-        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-slate-900 tracking-tight leading-tight mb-4">
-          Welcome to <br />
-          <span className="font-semibold text-[#002147]">CampusShelf</span>
-        </h1>
-
-        {/* Subtitle / Value Prop */}
-        <p className="text-slate-600 text-base sm:text-lg max-w-md mx-auto mb-8 font-light leading-relaxed">
-          The ultimate peer-to-peer textbook and book exchange for college students. Swap, sell, or read.
-        </p>
-
-        {/* Hyperlocal Campus Tag */}
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium mb-8">
-          <MapPin className="w-3.5 h-3.5" />
-          <span>Exclusive for MVJ College of Engineering (MVJCE)</span>
-        </div>
-
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-xs mx-auto mb-6">
-          <button
-            onClick={() => go('register')}
-            className="w-full py-3.5 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium shadow-md shadow-indigo-600/20 transition-all active:scale-[0.98] text-sm flex items-center justify-center gap-2"
-          >
-            Register.
-          </button>
-          
+        <div className="flex items-center gap-3">
           <button
             onClick={() => go('auth')}
-            className="w-full py-3.5 px-6 rounded-xl border-2 border-indigo-200/80 hover:border-indigo-600 hover:bg-indigo-50/50 text-indigo-700 font-medium transition-all active:scale-[0.98] text-sm"
+            className="text-xs font-medium text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
           >
-            Login.
+            Sign In
           </button>
-        </div>
-
-        {/* Guest Read-Only Pass */}
-        <div>
           <button
-            onClick={() => go('guest')}
-            className="text-xs text-slate-500 hover:text-slate-800 transition-colors underline underline-offset-4"
+            onClick={() => go('register')}
+            className="app-btn-primary text-xs py-1.5 px-3.5"
           >
-            Explore marketplace as Guest (Read-Only)
+            Create Account
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Feature Highlights Footer */}
-      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl w-full text-center text-xs text-slate-500">
-        <div className="flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Verified Campus Handoff</span>
+      {/* Main Hero Container */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-12 sm:py-16 flex flex-col justify-center">
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          {/* Institutional Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium">
+            <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Exclusively for MVJ College of Engineering Students</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-semibold text-slate-900 tracking-tight leading-tight">
+            Peer-to-peer textbook & academic book exchange
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-xl mx-auto">
+            Trade course syllabus textbooks, semester reference guides, and engineering notes with fellow students on campus. Coordinate safe physical handoffs at verified MVJCE landmarks.
+          </p>
+
+          {/* Primary Action Buttons */}
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-sm mx-auto">
+            <button
+              onClick={() => go('register')}
+              className="w-full sm:w-auto app-btn-primary px-6 py-2.5 text-sm"
+            >
+              <span>Get Started with College Email</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => go('guest')}
+              className="w-full sm:w-auto app-btn-secondary px-5 py-2.5 text-sm"
+            >
+              Browse Catalog as Guest
+            </button>
+          </div>
         </div>
-        <div className="flex items-center justify-center gap-1.5">
-          <Repeat className="w-4 h-4 text-indigo-600" />
-          <span>Dual Token & Cash Exchange</span>
+
+        {/* Feature Cards Grid (Disciplined, minimal cards) */}
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="app-card p-5 space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center mb-3">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-900">Verified Campus Handoffs</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Exchanges take place exclusively at official campus locations: ECE Block Lobby, Main Library Entrance, or CSE/ISE Block.
+            </p>
+          </div>
+
+          <div className="app-card p-5 space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 flex items-center justify-center mb-3">
+              <Repeat className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-900">Dual Exchange Economy</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Exchange textbooks using platform credit tokens earned by listing books, or settle direct cash purchases on physical handoff.
+            </p>
+          </div>
+
+          <div className="app-card p-5 space-y-2">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
+              <Lock className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-semibold text-slate-900">Privacy-Masked In-App Chat</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Your personal mobile number and private email address remain completely unexposed. Coordinate handoffs safely inside the app.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center justify-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-amber-500" />
-          <span>Masked Privacy Chat</span>
-        </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200 py-6 px-4 sm:px-8 bg-white text-center text-xs text-slate-500">
+        <p>© 2026 CampusShelf • Designed for MVJ College of Engineering, Channasandra, Bangalore.</p>
+      </footer>
     </div>
   );
 }
-

@@ -85,3 +85,4 @@ describe('Messaging & Realtime Chat Audit', () => {
     assert.equal(history.length, 1);
   });
 });
+

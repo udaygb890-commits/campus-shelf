@@ -8,9 +8,9 @@ import {
   Paperclip, 
   Lock, 
   ChevronRight, 
-  Smile, 
+  MessageSquare,
   Sparkles,
-  AlertCircle
+  Info
 } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 import { MVJCE_LANDMARKS } from '../data/initialData';
@@ -56,145 +56,170 @@ export default function Chat() {
 
   if (!activeChat) {
     return (
-      <div className="p-8 text-center glass-card max-w-md mx-auto my-12">
-        <p className="text-slate-500 text-sm">No active chats yet. Accept an incoming swap request to start a secure conversation.</p>
+      <div className="max-w-md mx-auto my-16 p-8 text-center bg-white border border-slate-200 rounded-xl shadow-card">
+        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4 text-slate-500">
+          <MessageSquare className="w-6 h-6" />
+        </div>
+        <h3 className="text-base font-semibold text-slate-900 mb-1">No Active Conversations</h3>
+        <p className="text-sm text-slate-500 leading-relaxed">
+          Accept an incoming book exchange proposal or send a request to start coordinating a safe campus handoff.
+        </p>
       </div>
     );
   }
 
   const QUICK_CHIPS = [
     "Is this book still available?",
-    "I'm at the lobby!",
-    "Can we meet around 3 PM?",
-    "Got the book, thank you!"
+    "I'm at the handoff point!",
+    "Can we meet around 3:30 PM?",
+    "Received the book in good condition, thank you!"
   ];
 
   return (
-    <div className="p-2 sm:p-4 lg:p-6 max-w-7xl mx-auto h-[calc(100vh-2rem)] flex flex-col">
+    <div className="p-3 sm:p-5 lg:p-6 max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col gap-3">
       {/* Privacy Notice Pill */}
-      <div className="mb-3 px-4 py-2 rounded-xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between text-xs text-indigo-900 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-2">
+      <div className="px-4 py-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-700 shadow-subtle flex-shrink-0">
+        <div className="flex items-center gap-2.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-          <span><strong>Privacy Protocol:</strong> Student phone numbers & private emails are masked. Coordinate physical handoffs safely at MVJCE landmarks.</span>
+          <span>
+            <strong className="text-slate-900 font-semibold">Campus Privacy Guard:</strong> Personal phone numbers and emails are masked. Coordinate physical handoffs safely at designated MVJCE campus landmarks.
+          </span>
         </div>
-        <span className="text-[10px] text-indigo-600 font-semibold uppercase tracking-wider hidden sm:inline">
-          Encrypted Session
-        </span>
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hidden sm:flex">
+          <Lock className="w-3 h-3 text-slate-400" />
+          <span>Institutional Channel</span>
+        </div>
       </div>
 
       {/* Split-panel Chat Layout */}
-      <div className="glass-card flex-1 flex flex-col md:flex-row overflow-hidden border border-white/80 shadow-2xl">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-card flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Left Panel: Conversation List (Desktop) */}
-        <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-200/80 bg-white/40 flex flex-col">
-          <div className="p-4 border-b border-slate-200/60 bg-white/50">
-            <h3 className="font-serif text-lg font-semibold text-slate-900">
-              Messages
+        <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-slate-200 bg-slate-50/60 flex flex-col">
+          <div className="p-4 border-b border-slate-200 bg-white">
+            <h3 className="text-sm font-semibold text-slate-900">
+              Conversations
             </h3>
-            <p className="text-[11px] text-slate-500">Active campus exchanges</p>
+            <p className="text-xs text-slate-500">Active campus book handoffs</p>
           </div>
 
           <div className="flex-1 overflow-y-auto divide-y divide-slate-100 no-scrollbar">
             {chats.map((chat) => {
               const isSelected = chat.id === activeChat.id;
               return (
-                <div
+                <button
                   key={chat.id}
+                  type="button"
                   onClick={() => setActiveChatId(chat.id)}
-                  className={`p-3.5 flex items-center gap-3 cursor-pointer transition-colors ${
-                    isSelected ? 'bg-indigo-50/80 border-l-4 border-indigo-600' : 'hover:bg-white/60'
+                  className={`w-full text-left p-3.5 flex items-center gap-3 transition-colors ${
+                    isSelected 
+                      ? 'bg-white border-l-2 border-brand-navy shadow-subtle' 
+                      : 'hover:bg-slate-100/60'
                   }`}
                 >
                   <img
                     src={chat.partner_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}
                     alt={chat.partner_name}
-                    className="w-10 h-10 rounded-full object-cover border border-slate-200"
+                    className="w-10 h-10 rounded-full object-cover border border-slate-200 flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-1">
                       <p className="text-xs font-semibold text-slate-900 truncate">{chat.partner_name}</p>
-                      <span className="text-[10px] text-slate-400">{chat.last_message_time}</span>
+                      <span className="text-[10px] text-slate-400 whitespace-nowrap">{chat.last_message_time}</span>
                     </div>
-                    <p className="text-[11px] text-indigo-600 truncate font-medium">{chat.listing_title}</p>
+                    <p className="text-[11px] text-brand-navy truncate font-medium">{chat.listing_title}</p>
                     <p className="text-[11px] text-slate-500 truncate">{chat.last_message}</p>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
         </div>
 
         {/* Right Panel: Active Chat Thread */}
-        <div className="flex-1 flex flex-col bg-white/60">
+        <div className="flex-1 flex flex-col bg-white">
           {/* Privacy-First Chat Header */}
-          <div className="p-3.5 sm:p-4 border-b border-slate-200/80 bg-white/80 flex items-center justify-between gap-3 flex-shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-shrink-0 bg-white">
+            <div className="flex items-center gap-3 min-w-0">
               <img
                 src={activeChat.partner_avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80'}
                 alt=""
-                className="w-9 h-9 rounded-full object-cover border border-indigo-200"
+                className="w-10 h-10 rounded-full object-cover border border-slate-200 flex-shrink-0"
               />
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h4 className="font-semibold text-xs sm:text-sm text-slate-900">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-semibold text-sm text-slate-900 truncate">
                     {activeChat.partner_name}
                   </h4>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-xs text-slate-500">
                     ({activeChat.partner_branch}, {activeChat.partner_year})
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 flex items-center gap-1">
-                  <Lock className="w-2.5 h-2.5 text-emerald-600" />
-                  <span>Student ID Verified • Phone/Email Masked</span>
-                </p>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+                  <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                    <ShieldCheck className="w-3 h-3" />
+                    MVJCE Verified
+                  </span>
+                  <span>•</span>
+                  <span className="truncate">{activeChat.listing_title}</span>
+                </div>
               </div>
             </div>
 
             {/* Atomic Complete Swap CTA for Owner */}
-            {activeChat.status === 'completed' ? (
-              <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Swap Finalized</span>
-              </span>
-            ) : (
-              <button
-                onClick={() => confirmSwap(activeChat.id)}
-                className="py-2 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-medium text-xs shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
-              >
-                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                <span>Confirm Swap</span>
-              </button>
-            )}
+            <div className="flex-shrink-0">
+              {activeChat.status === 'completed' ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Exchange Completed</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => confirmSwap(activeChat.id)}
+                  className="py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-subtle flex items-center gap-1.5 transition-colors"
+                >
+                  <CheckCircle2 className="w-4 h-4 stroke-[2]" />
+                  <span>Confirm Handoff</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Pinned Handoff Banner */}
-          <div className="px-4 py-2 bg-indigo-50 border-b border-indigo-100/80 flex items-center justify-between text-xs text-indigo-900 flex-shrink-0">
+          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs text-slate-700 flex-shrink-0">
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-indigo-600 animate-bounce" />
+              <MapPin className="w-3.5 h-3.5 text-brand-navy flex-shrink-0" />
               <span>
-                <strong>Meet at:</strong> {activeChat.handoff_spot}
+                <strong className="text-slate-900 font-semibold">Designated Meetup:</strong> {activeChat.handoff_spot}
               </span>
             </div>
 
             <button
+              type="button"
               onClick={() => setShowLandmarkPicker(!showLandmarkPicker)}
-              className="text-[11px] font-semibold text-indigo-600 hover:underline"
+              className="text-xs font-medium text-brand-navy hover:text-slate-900 underline"
             >
-              Change Landmark
+              {showLandmarkPicker ? 'Close' : 'Change Location'}
             </button>
           </div>
 
           {showLandmarkPicker && (
-            <div className="p-3 bg-white border-b border-slate-200 text-xs flex items-center gap-2 flex-wrap">
-              <span className="text-slate-500 font-medium">Select Landmark:</span>
+            <div className="p-3 bg-slate-50 border-b border-slate-200 text-xs flex items-center gap-2 flex-wrap">
+              <span className="text-slate-500 font-medium">Campus Points:</span>
               {MVJCE_LANDMARKS.map(spot => (
                 <button
                   key={spot}
+                  type="button"
                   onClick={() => {
                     activeChat.handoff_spot = spot;
                     setShowLandmarkPicker(false);
                     showToast(`Handoff landmark updated to ${spot}`);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 font-medium text-[11px] transition-colors"
+                  className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors ${
+                    activeChat.handoff_spot === spot
+                      ? 'bg-brand-navy text-white border-brand-navy'
+                      : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-100'
+                  }`}
                 >
                   {spot}
                 </button>
@@ -203,12 +228,12 @@ export default function Chat() {
           )}
 
           {/* Messages Thread */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3.5 bg-gradient-to-b from-white/40 to-slate-50/40">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50/40">
             {activeChat.messages.map((msg) => {
               if (msg.is_system) {
                 return (
                   <div key={msg.id} className="text-center my-3">
-                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-medium bg-indigo-100/80 text-indigo-800 border border-indigo-200/80">
+                    <span className="inline-block px-3 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                       {msg.text}
                     </span>
                   </div>
@@ -222,10 +247,10 @@ export default function Chat() {
                   className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-xs sm:max-w-md px-4 py-2.5 rounded-2xl text-xs sm:text-sm shadow-sm leading-relaxed ${
+                    className={`max-w-xs sm:max-w-md px-3.5 py-2.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                       isMe
-                        ? 'bg-indigo-600 text-white rounded-tr-none'
-                        : 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-none'
+                        ? 'bg-brand-navy text-white rounded-br-sm shadow-subtle'
+                        : 'bg-white text-slate-800 border border-slate-200 rounded-bl-sm shadow-subtle'
                     }`}
                   >
                     <p>{msg.text}</p>
@@ -240,13 +265,13 @@ export default function Chat() {
           </div>
 
           {/* Quick Action Chips */}
-          <div className="px-4 py-2 border-t border-slate-200/60 bg-white/70 flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
+          <div className="px-4 py-2 border-t border-slate-200 bg-white flex items-center gap-2 overflow-x-auto no-scrollbar flex-shrink-0">
             {QUICK_CHIPS.map((chip, idx) => (
               <button
                 key={idx}
                 type="button"
                 onClick={() => handleQuickChip(chip)}
-                className="py-1 px-3 rounded-full text-[11px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 border border-slate-200/80 whitespace-nowrap transition-colors"
+                className="py-1 px-3 rounded-full text-xs bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 whitespace-nowrap transition-colors"
               >
                 {chip}
               </button>
@@ -256,28 +281,29 @@ export default function Chat() {
           {/* Message Composer */}
           <form
             onSubmit={handleSend}
-            className="p-3 sm:p-4 border-t border-slate-200/80 bg-white flex items-center gap-2 flex-shrink-0"
+            className="p-3 sm:p-4 border-t border-slate-200 bg-white flex items-center gap-2 flex-shrink-0"
           >
             <button
               type="button"
-              onClick={() => showToast('Photo attachment allowed on live physical handoff')}
+              onClick={() => showToast('Photo proof enabled during active campus handoff')}
               className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+              title="Attach photo proof"
             >
               <Paperclip className="w-4 h-4" />
             </button>
 
             <input
               type="text"
-              placeholder="Type your message..."
+              placeholder="Write a message to coordinate pickup..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
-              className="flex-1 glass-input text-xs sm:text-sm py-2 px-3.5"
+              className="flex-1 app-input text-xs sm:text-sm py-2 px-3"
             />
 
             <button
               type="submit"
               disabled={!inputMessage.trim()}
-              className="py-2 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium shadow-md shadow-indigo-600/20 disabled:opacity-40 transition-all active:scale-95 flex items-center gap-1.5"
+              className="py-2 px-4 rounded-lg bg-brand-navy hover:bg-slate-900 text-white text-xs font-medium shadow-subtle disabled:opacity-40 transition-colors flex items-center gap-1.5"
             >
               <span>Send</span>
               <Send className="w-3.5 h-3.5" />
@@ -288,4 +314,3 @@ export default function Chat() {
     </div>
   );
 }
-

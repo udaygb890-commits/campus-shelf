@@ -2,33 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-slate-200 selection:text-slate-900;
+  }
+}
+
+@layer components {
+  /* Clean, structured card component */
+  .app-card {
+    @apply bg-white border border-slate-200 rounded-xl shadow-card transition-all;
+  }
+
+  /* Clean interactive input */
+  .app-input {
+    @apply bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy transition-colors;
+  }
+
+  /* Clean Primary Button */
+  .app-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-[#002147] hover:bg-[#001733] text-white text-sm font-medium px-4 py-2 rounded-lg shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  /* Clean Secondary Button */
+  .app-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg border border-slate-300 shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Clean Ghost Button */
+  .app-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors;
+  }
+
+  /* Backward-compatible class aliases mapped to refined modern styling */
   .glass-card {
-    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_30px_rgb(0,0,0,0.06)] rounded-2xl;
+    @apply bg-white border border-slate-200 rounded-xl shadow-card;
   }
   .glass-card-dark {
-    @apply bg-[#002147]/90 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl text-white;
+    @apply bg-[#002147] border border-slate-800 rounded-xl shadow-card text-white;
   }
   .glass-input {
-    @apply bg-white/60 backdrop-blur-sm border border-slate-200/80 focus:border-indigo-500 focus:bg-white/95 transition-all rounded-xl px-4 py-2.5 outline-none text-slate-800 placeholder-slate-400;
+    @apply bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy transition-colors;
   }
   .glass-btn-primary {
-    @apply bg-indigo-600/90 hover:bg-indigo-600 backdrop-blur-sm text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-500/20 border border-indigo-400/30 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 bg-[#002147] hover:bg-[#001733] text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-subtle transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 }
 
-/* Custom campus watermark pattern */
+/* Neutral, restrained canvas */
 .campus-canvas {
-  background-color: #fbfbf9;
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(0, 33, 71, 0.02) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.03) 0%, transparent 25%),
-    linear-gradient(to right, rgba(0, 33, 71, 0.015) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 33, 71, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+  @apply bg-slate-50 min-h-screen text-slate-900;
 }
 
-/* Hide scrollbar for clean UI */
+/* Hide scrollbar cleanly */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -36,4 +62,3 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-

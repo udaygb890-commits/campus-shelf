@@ -23,23 +23,24 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen campus-canvas flex flex-col items-center justify-center p-6 text-center">
-          <div className="glass-card max-w-md w-full p-8 border border-red-200/60 shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-              <AlertTriangle className="w-6 h-6" />
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-white max-w-md w-full p-8 border border-slate-200 rounded-xl shadow-card space-y-4">
+            <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-5 h-5" />
             </div>
-            <h2 className="font-serif text-xl font-bold text-slate-900">
-              Something went wrong
+            <h2 className="text-lg font-bold text-slate-900">
+              An unexpected error occurred
             </h2>
-            <p className="text-xs text-slate-600">
-              An unexpected error occurred in CampusShelf. Your session and data are safely saved.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              CampusShelf encountered an unhandled view error. Your session data remains safe.
             </p>
             <button
+              type="button"
               onClick={this.handleReload}
-              className="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md flex items-center justify-center gap-2 mx-auto transition-all"
+              className="py-2 px-4 rounded-lg bg-brand-navy hover:bg-slate-900 text-white text-xs font-medium shadow-subtle flex items-center justify-center gap-2 mx-auto transition-colors"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Reload Application</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Reload Page</span>
             </button>
           </div>
         </div>

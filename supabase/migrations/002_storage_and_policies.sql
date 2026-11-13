@@ -86,3 +86,4 @@ with check (
       and (c.user_one_id = auth.uid() or c.user_two_id = auth.uid())
   )
 );
+

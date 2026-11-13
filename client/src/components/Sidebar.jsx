@@ -1,21 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   BookOpen, 
   PlusCircle, 
   Search, 
-  BookMarked, 
+  Layers, 
+  Clock, 
   MessageSquare, 
+  Inbox, 
   Wallet, 
   User, 
-  LogOut, 
-  ChevronDown, 
-  ChevronUp, 
-  Sparkles,
-  Inbox,
-  Clock,
-  Layers,
-  Coins
+  LogOut,
+  ChevronRight
 } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
@@ -32,68 +28,97 @@ export default function Sidebar({ currentView, setCurrentView }) {
     isGuest 
   } = useCampusShelf();
 
-  // Accordion toggle states
-  const [isMyBooksOpen, setIsMyBooksOpen] = useState(true);
-  const [isChatsOpen, setIsChatsOpen] = useState(true);
-  const [isCreditsOpen, setIsCreditsOpen] = useState(false);
-
   const pendingCount = requests.filter(r => r.status === 'pending').length;
   const activeChatCount = chats.filter(c => c.status === 'active').length;
 
-  const VIEW_TO_PATH = {
-    feed: '/dashboard/feed',
-    active_listings: '/dashboard/active-listings',
-    my_library: '/dashboard/library',
-    history: '/dashboard/history',
-    chat: '/dashboard/chat',
-    pending_requests: '/dashboard/requests',
-    credits: '/dashboard/credits',
-    profile: '/dashboard/profile'
+  const NAV_SECTIONS = [
+    {
+      title: 'Marketplace',
+      items: [
+        { id: 'feed', path: '/dashboard/feed', label: 'Browse Feed', icon: Search },
+      ],
+    },
+    {
+      title: 'My Shelf',
+      items: [
+        { id: 'active_listings', path: '/dashboard/active-listings', label: 'Active Listings', icon: Layers },
+        { id: 'my_library', path: '/dashboard/library', label: 'My Library', icon: BookOpen },
+        { id: 'history', path: '/dashboard/history', label: 'Exchange History', icon: Clock },
+      ],
+    },
+    {
+      title: 'Communications',
+      items: [
+        { 
+          id: 'chat', 
+          path: '/dashboard/chat', 
+          label: 'Messages', 
+          icon: MessageSquare,
+          badge: activeChatCount > 0 ? activeChatCount : null,
+          badgeColor: 'bg-indigo-500 text-white'
+        },
+        { 
+          id: 'pending_requests', 
+          path: '/dashboard/requests', 
+          label: 'Swap Requests', 
+          icon: Inbox,
+          badge: pendingCount > 0 ? pendingCount : null,
+          badgeColor: 'bg-amber-400 text-slate-950 font-semibold'
+        },
+      ],
+    },
+    {
+      title: 'Account',
+      items: [
+        { 
+          id: 'credits', 
+          path: '/dashboard/credits', 
+          label: 'Credits & Ledger', 
+          icon: Wallet,
+          badge: `${currentUser?.credit_balance ?? 0} Credits`,
+          badgeColor: 'bg-slate-800 text-slate-300 border border-slate-700 text-[10px]'
+        },
+        { id: 'profile', path: '/dashboard/profile', label: 'Profile & Settings', icon: User },
+      ],
+    },
+  ];
+
+  const isItemActive = (item) => {
+    if (currentView) return currentView === item.id;
+    if (location.pathname === item.path) return true;
+    if (item.id === 'chat' && location.pathname.startsWith('/dashboard/chat')) return true;
+    return false;
   };
 
-  const PATH_TO_VIEW = {
-    '/dashboard/feed': 'feed',
-    '/dashboard/active-listings': 'active_listings',
-    '/dashboard/library': 'my_library',
-    '/dashboard/history': 'history',
-    '/dashboard/chat': 'chat',
-    '/dashboard/requests': 'pending_requests',
-    '/dashboard/credits': 'credits',
-    '/dashboard/profile': 'profile'
-  };
-
-  const effectiveView = currentView || PATH_TO_VIEW[location?.pathname] || 'feed';
-
-  const navigateTo = (view) => {
-    if (setCurrentView) setCurrentView(view);
-    const targetPath = VIEW_TO_PATH[view];
-    if (targetPath && navigate && location?.pathname !== targetPath) {
-      navigate(targetPath);
-    }
+  const handleNav = (item) => {
+    if (setCurrentView) setCurrentView(item.id);
+    navigate(item.path);
   };
 
   return (
-    <aside className="w-full md:w-[280px] bg-[#002147] text-white flex flex-col flex-shrink-0 md:min-h-screen border-r border-white/10 shadow-2xl z-20">
+    <aside className="w-full md:w-64 bg-[#0A1628] text-slate-300 flex flex-col flex-shrink-0 md:min-h-screen border-r border-slate-800 select-none">
       {/* Brand Header */}
-      <div className="p-6 border-b border-white/10">
+      <div className="p-5 border-b border-slate-800/80">
         <div 
-          onClick={() => navigateTo('feed')}
-          className="flex items-center gap-3 cursor-pointer group"
+          onClick={() => {
+            if (setCurrentView) setCurrentView('feed');
+            navigate('/dashboard/feed');
+          }}
+          className="flex items-center gap-2.5 cursor-pointer group"
         >
-          <div className="w-9 h-9 rounded-xl bg-indigo-600/90 text-white flex items-center justify-center shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-transform">
-            <BookOpen className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold shadow-sm">
+            <BookOpen className="w-4 h-4 stroke-[2.2]" />
           </div>
-          <div>
-            <span className="text-xl font-bold tracking-tight block leading-tight font-sans">
-              Campus<span className="text-indigo-400">Shelf</span>
-            </span>
-            <span className="text-[10px] tracking-wider uppercase text-slate-300 font-medium">
-              MVJCE Hyperlocal
-            </span>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-semibold tracking-tight text-white">CampusShelf</span>
+              <span className="text-[10px] font-medium px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/60">MVJCE</span>
+            </div>
+            <span className="text-[11px] text-slate-400 font-normal">Peer Textbook Exchange</span>
           </div>
         </div>
 
-        {/* Primary CTA Button */}
+        {/* Primary CTA */}
         <button
           onClick={() => {
             if (isGuest) {
@@ -102,216 +127,83 @@ export default function Sidebar({ currentView, setCurrentView }) {
             }
             setIsListModalOpen(true);
           }}
-          className="mt-5 w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium text-sm shadow-lg shadow-indigo-900/40 border border-indigo-400/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+          className="mt-4 w-full py-2 px-3 rounded-lg bg-white/10 hover:bg-white/15 active:bg-white/20 text-white font-medium text-xs border border-white/10 flex items-center justify-center gap-2 transition-all shadow-subtle"
         >
-          <PlusCircle className="w-4 h-4 stroke-[2.5]" />
-          <span>+ List / Sell a Book</span>
+          <PlusCircle className="w-3.5 h-3.5 stroke-[2.2] text-indigo-400" />
+          <span>List a Textbook</span>
         </button>
       </div>
 
       {/* Navigation Stack */}
-      <nav className="flex-1 px-4 py-5 space-y-1.5 overflow-y-auto no-scrollbar text-sm font-medium">
-        {/* Direct Link: Browse Feed */}
-        <button
-          onClick={() => navigateTo('feed')}
-          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-            effectiveView === 'feed'
-              ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold'
-              : 'text-slate-300 hover:bg-white/5 hover:text-white'
-          }`}
-        >
-          <Search className="w-4 h-4 text-indigo-400" />
-          <span>Browse Feed</span>
-        </button>
+      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto no-scrollbar">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.title} className="space-y-1">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-1">
+              {section.title}
+            </p>
+            {section.items.map((item) => {
+              const active = isItemActive(item);
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleNav(item)}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    active
+                      ? 'bg-indigo-600 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-white' : 'text-slate-400'}`} />
+                    <span className="truncate">{item.label}</span>
+                  </div>
 
-        {/* Accordion 1: My Books */}
-        <div>
-          <button
-            onClick={() => setIsMyBooksOpen(!isMyBooksOpen)}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <BookMarked className="w-4 h-4 text-emerald-400" />
-              <span>My Books</span>
-            </div>
-            {isMyBooksOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-
-          {isMyBooksOpen && (
-            <div className="pl-9 pr-2 py-1 space-y-1">
-              <button
-                onClick={() => navigateTo('active_listings')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  effectiveView === 'active_listings'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>Active Listings</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('my_library')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  effectiveView === 'my_library'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>My Library</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('history')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  effectiveView === 'history'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span>Book Swapped & History</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Accordion 2: Chats & Requests */}
-        <div>
-          <button
-            onClick={() => setIsChatsOpen(!isChatsOpen)}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-4 h-4 text-blue-400" />
-              <span>Chats & Requests</span>
-            </div>
-            {isChatsOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-
-          {isChatsOpen && (
-            <div className="pl-9 pr-2 py-1 space-y-1">
-              <button
-                onClick={() => navigateTo('chat')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                  effectiveView === 'chat'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Secure Messages</span>
-                </div>
-                {activeChatCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-indigo-500 text-white">
-                    {activeChatCount}
-                  </span>
-                )}
-              </button>
-
-              <button
-                onClick={() => navigateTo('pending_requests')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center justify-between ${
-                  effectiveView === 'pending_requests'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Inbox className="w-3.5 h-3.5" />
-                  <span>Pending Swap Requests</span>
-                </div>
-                {pendingCount > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-amber-500 text-slate-900 font-bold">
-                    {pendingCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Accordion 3: Credits & Ledger */}
-        <div>
-          <button
-            onClick={() => setIsCreditsOpen(!isCreditsOpen)}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Wallet className="w-4 h-4 text-amber-400" />
-              <span>Credits & Ledger</span>
-            </div>
-            {isCreditsOpen ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-          </button>
-
-          {isCreditsOpen && (
-            <div className="pl-9 pr-2 py-1 space-y-1">
-              <button
-                onClick={() => navigateTo('credits')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  effectiveView === 'credits'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Coins className="w-3.5 h-3.5" />
-                <span>Credit Balance ({currentUser.credit_balance})</span>
-              </button>
-
-              <button
-                onClick={() => navigateTo('credits')}
-                className={`w-full text-left py-1.5 px-3 rounded-lg text-xs transition-colors flex items-center gap-2 ${
-                  effectiveView === 'credits'
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Clock className="w-3.5 h-3.5" />
-                <span>Transaction History</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Direct Link: Profile & Settings */}
-        <button
-          onClick={() => navigateTo('profile')}
-          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-            effectiveView === 'profile'
-              ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-semibold'
-              : 'text-slate-300 hover:bg-white/5 hover:text-white'
-          }`}
-        >
-          <User className="w-4 h-4 text-purple-400" />
-          <span>My Profile & Settings</span>
-        </button>
+                  {item.badge && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${item.badgeColor || 'bg-slate-800 text-slate-300'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* User Info & Log Out Footer */}
-      <div className="p-4 border-t border-white/10 bg-[#001733]/60">
-        {!isGuest && (
-          <div className="flex items-center gap-2.5 mb-3 px-2">
+      <div className="p-3 border-t border-slate-800/80 bg-slate-950/40">
+        {!isGuest && currentUser && (
+          <div 
+            onClick={() => {
+              if (setCurrentView) setCurrentView('profile');
+              navigate('/dashboard/profile');
+            }}
+            className="flex items-center gap-2.5 p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer mb-1 group"
+          >
             <img
-              src={currentUser.avatar_url}
-              alt={currentUser.full_name}
-              className="w-8 h-8 rounded-full object-cover border border-indigo-400/40"
+              src={currentUser.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}
+              alt={currentUser.full_name || 'User'}
+              className="w-7 h-7 rounded-full object-cover border border-slate-700 flex-shrink-0"
             />
-            <div className="overflow-hidden">
-              <p className="text-xs font-semibold text-white truncate">{currentUser.full_name}</p>
-              <p className="text-[10px] text-slate-400 truncate">{currentUser.branch.split('(')[0]}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-white truncate group-hover:text-indigo-300 transition-colors">
+                {currentUser.full_name}
+              </p>
+              <p className="text-[10px] text-slate-400 truncate">
+                {currentUser.branch ? currentUser.branch.split('(')[0].trim() : 'MVJCE Student'} • Yr {currentUser.year || 1}
+              </p>
             </div>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-200 transition-colors" />
           </div>
         )}
 
         <button
           onClick={() => setIsLogoutModalOpen(true)}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-300 hover:text-red-200 hover:bg-red-500/10 transition-colors"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs text-slate-400 hover:text-red-400 hover:bg-red-950/20 transition-colors"
         >
-          <LogOut className="w-4 h-4" />
-          <span>Log Out</span>
+          <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Sign Out</span>
         </button>
       </div>
     </aside>

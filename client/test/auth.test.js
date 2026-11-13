@@ -106,3 +106,4 @@ describe('Authentication & Profile Verification Audit', () => {
     assert.equal(getItem('cs_user_data'), undefined);
   });
 });
+
