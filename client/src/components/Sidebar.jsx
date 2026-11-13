@@ -96,7 +96,7 @@ export default function Sidebar({ currentView, setCurrentView }) {
   };
 
   return (
-    <aside className="w-full md:w-64 bg-[#0A1628] text-slate-300 flex flex-col flex-shrink-0 md:min-h-screen border-r border-slate-800 select-none">
+    <aside className="w-full h-full bg-[#0A1628] text-slate-300 flex flex-col flex-shrink-0 overflow-hidden select-none">
       {/* Brand Header */}
       <div className="p-5 border-b border-slate-800/80">
         <div 

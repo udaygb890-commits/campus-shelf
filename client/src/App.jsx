@@ -72,6 +72,7 @@ function DashboardLayout() {
   };
 
   const breadcrumb = getBreadcrumb();
+  const isChatRoute = location.pathname.startsWith('/dashboard/chat');
 
   const getActiveTab = () => {
     const path = location.pathname;
@@ -83,9 +84,9 @@ function DashboardLayout() {
   const activeTab = getActiveTab();
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row text-slate-900">
+    <div className="h-screen h-[100dvh] w-full flex flex-col md:flex-row overflow-hidden bg-slate-50 text-slate-900">
       {/* Mobile Top Header */}
-      <header className="md:hidden bg-[#0A1628] text-white px-4 py-3 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-subtle">
+      <header className="md:hidden h-14 flex-shrink-0 bg-[#0A1628] text-white px-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-30 shadow-subtle">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10"
@@ -123,21 +124,21 @@ function DashboardLayout() {
           className="fixed inset-0 z-40 bg-slate-950/70 md:hidden flex animate-in fade-in duration-200" 
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="w-64 bg-[#0A1628] h-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-64 bg-[#0A1628] h-full shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
             <Sidebar setCurrentView={() => setIsMobileMenuOpen(false)} />
           </div>
         </div>
       )}
 
       {/* Desktop Persistent Left Sidebar */}
-      <div className="hidden md:block">
+      <div className="hidden md:flex md:w-64 h-full flex-col flex-shrink-0 bg-[#0A1628] border-r border-slate-800 overflow-hidden">
         <Sidebar />
       </div>
 
       {/* Main Fluid Application Shell */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden">
         {/* Desktop Top Header Bar */}
-        <header className="hidden md:flex h-14 bg-white border-b border-slate-200 px-6 items-center justify-between sticky top-0 z-20 shadow-subtle">
+        <header className="hidden md:flex h-14 flex-shrink-0 bg-white border-b border-slate-200 px-6 items-center justify-between z-20 shadow-subtle">
           {/* Breadcrumb Context */}
           <div className="flex items-center gap-2 text-xs">
             <span className="text-slate-400 font-medium">{breadcrumb.section}</span>
@@ -183,7 +184,11 @@ function DashboardLayout() {
         </header>
 
         {/* Page Content Body */}
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-8">
+        <main className={`flex-1 min-h-0 w-full flex flex-col ${
+          isChatRoute 
+            ? 'overflow-hidden p-2.5 sm:p-4 lg:p-5 pb-16 md:pb-5' 
+            : 'overflow-y-auto pb-20 md:pb-8'
+        }`}>
           <Outlet />
         </main>
       </div>
