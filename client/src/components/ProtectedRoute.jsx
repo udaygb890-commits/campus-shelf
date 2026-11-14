@@ -27,10 +27,5 @@ export default function ProtectedRoute() {
     return <Navigate to="/auth" replace />;
   }
 
-  // Authenticated student whose institutional verification is pending -> redirect to verification
-  if (isAuthenticated && !isGuest && currentUser?.verification_status !== 'verified') {
-    return <Navigate to="/verify" replace />;
-  }
-
   return <Outlet />;
 }

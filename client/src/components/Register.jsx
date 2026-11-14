@@ -113,27 +113,20 @@ export default function Register({ onNavigate }) {
 
       // Check if session established directly or verification required
       if (data?.session) {
-        const isInst = isApprovedInstitutionalDomain(email.trim());
         performLogin({
           id: data.user?.id,
-          official_email: isInst ? email.trim() : '',
+          official_email: email.trim(),
           personal_email: email.trim(),
           full_name: fullName.trim(),
           branch,
-          year: Number(year),
-          verification_status: isInst ? 'verified' : 'pending'
+          year: Number(year)
         });
-        if (isInst) {
-          showToast('Registration successful! Welcome to CampusShelf.');
-          go('feed');
-        } else {
-          showToast('Account created. Please verify your MVJCE institutional email.');
-          navigate('/verify');
-        }
+        showToast('Account created successfully! Welcome to CampusShelf.');
+        go('feed');
       } else {
         // Verification email sent
         setIsSuccess(true);
-        showToast('Verification email sent to your college inbox!');
+        showToast('Verification email sent to your inbox!');
       }
     } catch (err) {
       setIsLoading(false);
@@ -145,10 +138,22 @@ export default function Register({ onNavigate }) {
     setErrorMsg('');
     setIsGoogleLoading(true);
     try {
-      const { error } = await signInWithGoogle();
+      const { data, error } = await signInWithGoogle();
+      setIsGoogleLoading(false);
       if (error) {
-        setIsGoogleLoading(false);
         setErrorMsg(error.message || 'Google sign-up could not be completed.');
+        return;
+      }
+      if (data?.session) {
+        performLogin({
+          id: data.user?.id,
+          official_email: data.user?.email,
+          personal_email: data.user?.email,
+          full_name: data.user?.user_metadata?.full_name || 'Google User',
+          avatar_url: data.user?.user_metadata?.avatar_url
+        });
+        showToast('Registered and signed in with Google!');
+        go('feed');
       }
     } catch (err) {
       setIsGoogleLoading(false);
@@ -323,7 +328,7 @@ export default function Register({ onNavigate }) {
                     />
                   </svg>
                 )}
-                <span>Register with Google (@mvjce.edu.in)</span>
+                <span>Continue with Google</span>
               </button>
 
               <div className="relative text-center my-3">
@@ -331,7 +336,7 @@ export default function Register({ onNavigate }) {
                   <div className="w-full border-t border-slate-200" />
                 </div>
                 <span className="relative bg-slate-50 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                  or enter student details
+                  or with email
                 </span>
               </div>
 
@@ -354,16 +359,16 @@ export default function Register({ onNavigate }) {
                   </div>
                 </div>
 
-                {/* College Email */}
+                {/* Email Address */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Institutional Email <span className="text-rose-500">*</span>
+                    Email Address <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
-                      placeholder="rahul.v@mvjce.edu.in"
+                      placeholder="you@gmail.com or name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="app-input w-full pl-9 py-2 text-xs sm:text-sm"

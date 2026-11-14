@@ -26,9 +26,9 @@ function validateRegistration({ fullName, email, phone, password, confirmPasswor
 function validateLogin({ email, password }) {
   const errors = [];
   if (!email) {
-    errors.push('Please enter your college email.');
-  } else if (!email.endsWith('@mvjce.edu.in') && !email.includes('@')) {
-    errors.push('Please use your official @mvjce.edu.in college email.');
+    errors.push('Please enter your email address.');
+  } else if (!email.includes('@')) {
+    errors.push('Please enter a valid email format.');
   }
   if (!password) {
     errors.push('Please enter your password.');
@@ -50,6 +50,26 @@ describe('Authentication & Profile Verification Audit', () => {
     assert.equal(result.errors.length, 0);
   });
 
+  it('should accept personal email on login and registration', () => {
+    const personalLogin = {
+      email: 'alex.student@gmail.com',
+      password: 'password123',
+    };
+    const result = validateLogin(personalLogin);
+    assert.equal(result.isValid, true);
+    assert.equal(result.errors.length, 0);
+
+    const personalReg = {
+      fullName: 'Alex Student',
+      email: 'alex.student@gmail.com',
+      phone: '9876543210',
+      password: 'SecurePassword123',
+      confirmPassword: 'SecurePassword123',
+    };
+    const regResult = validateRegistration(personalReg);
+    assert.equal(regResult.isValid, true);
+  });
+
   it('should reject short name, invalid phone, and mismatching passwords in registration', () => {
     const invalidData = {
       fullName: 'R',
@@ -66,7 +86,7 @@ describe('Authentication & Profile Verification Audit', () => {
     assert.ok(result.errors.includes('Passwords do not match.'));
   });
 
-  it('should validate official MVJCE domain on login', () => {
+  it('should validate email login for college domain as well', () => {
     const studentLogin = {
       email: 'student.name@mvjce.edu.in',
       password: 'password123',
@@ -80,7 +100,7 @@ describe('Authentication & Profile Verification Audit', () => {
     const emptyLogin = { email: '', password: '' };
     const result = validateLogin(emptyLogin);
     assert.equal(result.isValid, false);
-    assert.ok(result.errors.includes('Please enter your college email.'));
+    assert.ok(result.errors.includes('Please enter your email address.'));
     assert.ok(result.errors.includes('Please enter your password.'));
   });
 

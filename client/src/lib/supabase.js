@@ -93,7 +93,17 @@ export async function signInUser({ email, password }) {
 export async function signInWithGoogle() {
   if (!isConfigured) {
     return {
-      data: { url: null, provider: 'google' },
+      data: {
+        user: {
+          id: 'usr_google_' + Date.now(),
+          email: 'student.personal@gmail.com',
+          user_metadata: { 
+            full_name: 'Alex Student',
+            avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'
+          }
+        },
+        session: { access_token: `mock_google_token_${Date.now()}` }
+      },
       error: null
     };
   }
@@ -103,7 +113,6 @@ export async function signInWithGoogle() {
     options: {
       redirectTo: `${window.location.origin}${window.location.pathname}#/auth/callback`,
       queryParams: {
-        hd: 'mvjce.edu.in', // Request institutional domain restriction
         prompt: 'select_account',
       },
     },

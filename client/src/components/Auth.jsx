@@ -49,7 +49,7 @@ export default function Auth({ onNavigate }) {
     setErrorMsg('');
 
     if (!email) {
-      setErrorMsg('Please enter your college email address.');
+      setErrorMsg('Please enter your email address.');
       return;
     }
 
@@ -70,28 +70,20 @@ export default function Auth({ onNavigate }) {
       setIsLoading(false);
 
       if (error) {
-        setErrorMsg(error.message || 'Invalid college email or password.');
+        setErrorMsg(error.message || 'Invalid email or password.');
         return;
       }
 
-      const isInst = isApprovedInstitutionalDomain(email.trim());
-      const isVerified = isInst || data?.user?.user_metadata?.verification_status === 'verified';
-
       performLogin({
         id: data?.user?.id,
-        official_email: isInst ? email.trim() : (data?.user?.user_metadata?.institutional_email || ''),
+        official_email: email.trim(),
         personal_email: email.trim(),
         full_name: data?.user?.user_metadata?.full_name || email.split('@')[0],
-        verification_status: isVerified ? 'verified' : 'pending'
+        verification_status: 'verified'
       });
 
-      if (isVerified) {
-        showToast('Welcome back to CampusShelf!');
-        go('feed');
-      } else {
-        showToast('Please complete MVJCE student verification.');
-        navigate('/verify');
-      }
+      showToast('Welcome back to CampusShelf!');
+      go('feed');
     } catch (err) {
       setIsLoading(false);
       setErrorMsg(err.message || 'Authentication service temporarily unreachable.');
@@ -102,12 +94,24 @@ export default function Auth({ onNavigate }) {
     setErrorMsg('');
     setIsGoogleLoading(true);
     try {
-      const { error } = await signInWithGoogle();
+      const { data, error } = await signInWithGoogle();
+      setIsGoogleLoading(false);
       if (error) {
-        setIsGoogleLoading(false);
         setErrorMsg(error.message || 'Google sign-in could not be completed.');
+        return;
       }
-      // If successful, Supabase redirects to oauth callback
+      if (data?.session) {
+        performLogin({
+          id: data.user?.id,
+          official_email: data.user?.email,
+          personal_email: data.user?.email,
+          full_name: data.user?.user_metadata?.full_name || 'Google User',
+          avatar_url: data.user?.user_metadata?.avatar_url,
+          verification_status: 'verified'
+        });
+        showToast('Signed in with Google!');
+        go('feed');
+      }
     } catch (err) {
       setIsGoogleLoading(false);
       setErrorMsg(err.message || 'Google OAuth failed.');
@@ -258,16 +262,16 @@ export default function Auth({ onNavigate }) {
                   Recover Your Account
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                  Enter your registered college email and we will send a password reset link.
+                  Enter your registered email and we will send a password reset link.
                 </p>
               </>
             ) : (
               <>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-                  Student Sign In
+                  Sign In
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                  Access your MVJCE textbook shelf and active exchange conversations.
+                  Access your textbook shelf and active exchange conversations.
                 </p>
               </>
             )}
@@ -294,13 +298,13 @@ export default function Auth({ onNavigate }) {
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Institutional Email
+                  Email Address
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
-                    placeholder="student.name@mvjce.edu.in"
+                    placeholder="you@gmail.com or name@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="app-input w-full pl-9 py-2.5 text-xs sm:text-sm"
@@ -356,7 +360,7 @@ export default function Auth({ onNavigate }) {
                     />
                   </svg>
                 )}
-                <span>Sign in with Google (@mvjce.edu.in)</span>
+                <span>Continue with Google</span>
               </button>
 
               {/* Restrained Divider */}
@@ -365,7 +369,7 @@ export default function Auth({ onNavigate }) {
                   <div className="w-full border-t border-slate-200" />
                 </div>
                 <span className="relative bg-slate-50 px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                  or college email
+                  or with email
                 </span>
               </div>
 
@@ -373,13 +377,13 @@ export default function Auth({ onNavigate }) {
               <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    College Email
+                    Email Address
                   </label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="email"
-                      placeholder="student.name@mvjce.edu.in"
+                      placeholder="you@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="app-input w-full pl-9 py-2 text-xs sm:text-sm"

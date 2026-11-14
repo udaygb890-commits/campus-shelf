@@ -12,7 +12,16 @@ export default function AuthCallback() {
   useEffect(() => {
     async function handleAuth() {
       if (!isConfigured) {
-        navigate('/verify');
+        performLogin({
+          id: 'usr_google_demo',
+          official_email: 'student.personal@gmail.com',
+          personal_email: 'student.personal@gmail.com',
+          full_name: 'Alex Student',
+          avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+          verification_status: 'verified'
+        });
+        showToast('Signed in successfully with Google!');
+        navigate('/dashboard/feed');
         return;
       }
 
@@ -33,23 +42,16 @@ export default function AuthCallback() {
             .eq('id', session.user.id)
             .single();
 
-          const isDomainVerified = profile?.verification_status === 'verified' || isApprovedInstitutionalDomain(session.user.email);
-
           performLogin({
             id: session.user.id,
             official_email: profile?.institutional_email || session.user.email,
             personal_email: session.user.email,
             full_name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-            verification_status: isDomainVerified ? 'verified' : (profile?.verification_status || 'pending')
+            avatar_url: session.user.user_metadata?.avatar_url
           });
 
-          if (isDomainVerified) {
-            showToast('Welcome back! Verified student access granted.');
-            navigate('/dashboard/feed');
-          } else {
-            showToast('Identity authenticated. Complete MVJCE student verification to continue.');
-            navigate('/verify');
-          }
+          showToast('Signed in successfully with Google!');
+          navigate('/dashboard/feed');
         } else {
           navigate('/auth');
         }
@@ -72,7 +74,7 @@ export default function AuthCallback() {
           Establishing Secure Session
         </h2>
         <p className="text-xs text-slate-500">
-          Checking your institutional student verification status...
+          Signing into your account...
         </p>
         <RefreshCw className="w-5 h-5 text-[#002147] animate-spin mx-auto pt-1" />
       </div>

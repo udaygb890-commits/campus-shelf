@@ -548,7 +548,11 @@ export function CampusShelfProvider({ children }) {
     setIsAuthenticated(true);
     setIsGuest(false);
     if (userData) {
-      setCurrentUser(prev => ({ ...prev, ...userData }));
+      setCurrentUser(prev => ({
+        ...prev,
+        ...userData,
+        verification_status: userData.verification_status || 'verified'
+      }));
     }
   };
 
