@@ -91,29 +91,24 @@ export async function signInUser({ email, password }) {
 }
 
 export async function signInWithGoogle() {
+  const origin = window.location.origin;
+  const pathname = window.location.pathname.replace(/\/+$/, '');
+  const redirectTo = `${origin}${pathname ? pathname : ''}/#/auth/callback`;
+
   if (!isConfigured) {
     return {
-      data: {
-        user: {
-          id: 'usr_google_' + Date.now(),
-          email: 'student.personal@gmail.com',
-          user_metadata: { 
-            full_name: 'Alex Student',
-            avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'
-          }
-        },
-        session: { access_token: `mock_google_token_${Date.now()}` }
-      },
-      error: null
+      data: null,
+      error: new Error('Supabase is not configured with live credentials. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in client/.env to use Google OAuth.')
     };
   }
 
   return await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}${window.location.pathname}#/auth/callback`,
+      redirectTo,
       queryParams: {
         prompt: 'select_account',
+        access_type: 'offline',
       },
     },
   });

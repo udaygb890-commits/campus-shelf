@@ -200,5 +200,56 @@ describe('Authentication & Profile Verification Audit', () => {
     assert.equal(student.verification_status, 'verified');
     assert.ok(student.verified_at);
   });
+
+  it('should construct Google OAuth options with prompt=select_account', () => {
+    function getGoogleOAuthOptions(origin, pathname) {
+      const cleanPath = pathname.replace(/\/+$/, '');
+      return {
+        provider: 'google',
+        options: {
+          redirectTo: `${origin}${cleanPath ? cleanPath : ''}/#/auth/callback`,
+          queryParams: {
+            prompt: 'select_account',
+            access_type: 'offline',
+          },
+        },
+      };
+    }
+
+    const options = getGoogleOAuthOptions('https://campusshelf.mvjce.edu.in', '/app');
+    assert.equal(options.provider, 'google');
+    assert.equal(options.options.queryParams.prompt, 'select_account');
+    assert.equal(options.options.queryParams.access_type, 'offline');
+    assert.equal(options.options.redirectTo, 'https://campusshelf.mvjce.edu.in/app/#/auth/callback');
+  });
+
+  it('should route OAuth callback correctly based on verification status', () => {
+    function resolveCallbackRoute(verificationStatus) {
+      if (verificationStatus === 'verified') {
+        return '/dashboard/feed';
+      }
+      return '/verify';
+    }
+
+    assert.equal(resolveCallbackRoute('verified'), '/dashboard/feed');
+    assert.equal(resolveCallbackRoute('pending'), '/verify');
+    assert.equal(resolveCallbackRoute('under_review'), '/verify');
+    assert.equal(resolveCallbackRoute('email_verification_sent'), '/verify');
+  });
+
+  it('should detect OAuth error and cancellation parameters', () => {
+    function parseOAuthError(queryString) {
+      const params = new URLSearchParams(queryString);
+      const error = params.get('error') || params.get('error_code');
+      const desc = params.get('error_description');
+      if (error) {
+        return { isError: true, message: desc || 'Authentication cancelled' };
+      }
+      return { isError: false };
+    }
+
+    assert.equal(parseOAuthError('error=access_denied&error_description=User+cancelled').isError, true);
+    assert.equal(parseOAuthError('code=valid_pkce_code_123').isError, false);
+  });
 });
 

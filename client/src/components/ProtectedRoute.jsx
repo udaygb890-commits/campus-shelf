@@ -27,5 +27,11 @@ export default function ProtectedRoute() {
     return <Navigate to="/auth" replace />;
   }
 
+  // Student verification gate:
+  // If authenticated but student is not verified (and not browsing in read-only guest mode)
+  if (isAuthenticated && !isGuest && currentUser?.verification_status !== 'verified') {
+    return <Navigate to="/verify" replace />;
+  }
+
   return <Outlet />;
 }

@@ -74,16 +74,24 @@ export default function Auth({ onNavigate }) {
         return;
       }
 
+      const isInst = isApprovedInstitutionalDomain(email.trim());
+      const isVerified = isInst || data?.user?.user_metadata?.verification_status === 'verified';
+
       performLogin({
         id: data?.user?.id,
-        official_email: email.trim(),
+        official_email: isInst ? email.trim() : (data?.user?.user_metadata?.institutional_email || ''),
         personal_email: email.trim(),
         full_name: data?.user?.user_metadata?.full_name || email.split('@')[0],
-        verification_status: 'verified'
+        verification_status: isVerified ? 'verified' : 'pending'
       });
 
-      showToast('Welcome back to CampusShelf!');
-      go('feed');
+      if (isVerified) {
+        showToast('Welcome back to CampusShelf!');
+        go('feed');
+      } else {
+        showToast('Please complete MVJCE student verification.');
+        navigate('/verify');
+      }
     } catch (err) {
       setIsLoading(false);
       setErrorMsg(err.message || 'Authentication service temporarily unreachable.');
@@ -95,22 +103,13 @@ export default function Auth({ onNavigate }) {
     setIsGoogleLoading(true);
     try {
       const { data, error } = await signInWithGoogle();
-      setIsGoogleLoading(false);
       if (error) {
+        setIsGoogleLoading(false);
         setErrorMsg(error.message || 'Google sign-in could not be completed.');
         return;
       }
-      if (data?.session) {
-        performLogin({
-          id: data.user?.id,
-          official_email: data.user?.email,
-          personal_email: data.user?.email,
-          full_name: data.user?.user_metadata?.full_name || 'Google User',
-          avatar_url: data.user?.user_metadata?.avatar_url,
-          verification_status: 'verified'
-        });
-        showToast('Signed in with Google!');
-        go('feed');
+      if (data?.url) {
+        window.location.assign(data.url);
       }
     } catch (err) {
       setIsGoogleLoading(false);

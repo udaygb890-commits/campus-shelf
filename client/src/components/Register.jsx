@@ -113,16 +113,22 @@ export default function Register({ onNavigate }) {
 
       // Check if session established directly or verification required
       if (data?.session) {
+        const isInst = isApprovedInstitutionalDomain(email.trim());
         performLogin({
           id: data.user?.id,
-          official_email: email.trim(),
+          official_email: isInst ? email.trim() : '',
           personal_email: email.trim(),
           full_name: fullName.trim(),
           branch,
-          year: Number(year)
+          year: Number(year),
+          verification_status: isInst ? 'verified' : 'pending'
         });
         showToast('Account created successfully! Welcome to CampusShelf.');
-        go('feed');
+        if (isInst) {
+          go('feed');
+        } else {
+          navigate('/verify');
+        }
       } else {
         // Verification email sent
         setIsSuccess(true);
@@ -139,21 +145,13 @@ export default function Register({ onNavigate }) {
     setIsGoogleLoading(true);
     try {
       const { data, error } = await signInWithGoogle();
-      setIsGoogleLoading(false);
       if (error) {
+        setIsGoogleLoading(false);
         setErrorMsg(error.message || 'Google sign-up could not be completed.');
         return;
       }
-      if (data?.session) {
-        performLogin({
-          id: data.user?.id,
-          official_email: data.user?.email,
-          personal_email: data.user?.email,
-          full_name: data.user?.user_metadata?.full_name || 'Google User',
-          avatar_url: data.user?.user_metadata?.avatar_url
-        });
-        showToast('Registered and signed in with Google!');
-        go('feed');
+      if (data?.url) {
+        window.location.assign(data.url);
       }
     } catch (err) {
       setIsGoogleLoading(false);

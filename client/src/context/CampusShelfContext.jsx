@@ -226,6 +226,10 @@ export function CampusShelfProvider({ children }) {
       } else if (event === 'SIGNED_OUT') {
         setIsAuthenticated(false);
         setIsGuest(false);
+        setCurrentUser(INITIAL_USER);
+        localStorage.removeItem('cs_user_data');
+        localStorage.removeItem('cs_auth_state');
+        localStorage.removeItem('cs_is_guest');
       }
     });
 
@@ -551,7 +555,9 @@ export function CampusShelfProvider({ children }) {
       setCurrentUser(prev => ({
         ...prev,
         ...userData,
-        verification_status: userData.verification_status || 'verified'
+        verification_status: userData.verification_status !== undefined
+          ? userData.verification_status
+          : (prev.verification_status || 'pending')
       }));
     }
   };
@@ -560,6 +566,10 @@ export function CampusShelfProvider({ children }) {
     setIsGuest(false);
     setIsAuthenticated(false);
     setIsLogoutModalOpen(false);
+    setCurrentUser(INITIAL_USER);
+    localStorage.removeItem('cs_user_data');
+    localStorage.removeItem('cs_auth_state');
+    localStorage.removeItem('cs_is_guest');
     await signOutUser().catch(console.error);
     showToast('Signed out of CampusShelf');
   };
