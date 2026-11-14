@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useCampusShelf } from '../context/CampusShelfContext';
 import { signUpUser, signInWithGoogle } from '../lib/supabase';
+import { isApprovedInstitutionalDomain } from '../lib/institutionalConfig';
 import { MVJCE_DEPARTMENTS } from '../data/initialData';
 
 export default function Register({ onNavigate }) {
@@ -112,15 +113,23 @@ export default function Register({ onNavigate }) {
 
       // Check if session established directly or verification required
       if (data?.session) {
+        const isInst = isApprovedInstitutionalDomain(email.trim());
         performLogin({
           id: data.user?.id,
-          official_email: email.trim(),
+          official_email: isInst ? email.trim() : '',
+          personal_email: email.trim(),
           full_name: fullName.trim(),
           branch,
-          year: Number(year)
+          year: Number(year),
+          verification_status: isInst ? 'verified' : 'pending'
         });
-        showToast('Registration successful! Welcome to CampusShelf.');
-        go('feed');
+        if (isInst) {
+          showToast('Registration successful! Welcome to CampusShelf.');
+          go('feed');
+        } else {
+          showToast('Account created. Please verify your MVJCE institutional email.');
+          navigate('/verify');
+        }
       } else {
         // Verification email sent
         setIsSuccess(true);

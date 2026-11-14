@@ -37,6 +37,9 @@ export const INITIAL_USER = {
   privacy_enabled: true,
   avatar_url: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
   role: 'student',
+  verification_status: 'verified',
+  verification_method: 'domain_sso',
+  institutional_email: 'udaygb890@mvjce.edu.in',
   onboarding_completed: true,
 };
 

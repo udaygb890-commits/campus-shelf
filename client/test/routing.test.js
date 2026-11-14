@@ -8,6 +8,7 @@ describe('Routing & Link Navigation Audit', () => {
     '/auth',
     '/auth/callback',
     '/auth/reset-password',
+    '/verify',
     '/onboarding',
     '/dashboard/feed',
     '/dashboard/active-listings',
@@ -22,6 +23,7 @@ describe('Routing & Link Navigation Audit', () => {
   function resolveRoute(path) {
     if (path === '/welcome') return '/';
     if (path === '/login') return '/auth';
+    if (path === '/verification') return '/verify';
     if (path === '/dashboard') return '/dashboard/feed';
 
     // Dynamic chat route parameter

@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { supabase, isConfigured } from '../lib/supabase';
+import { isApprovedInstitutionalDomain } from '../lib/institutionalConfig';
 import { useCampusShelf } from '../context/CampusShelfContext';
 
 export default function AuthCallback() {
@@ -11,7 +12,7 @@ export default function AuthCallback() {
   useEffect(() => {
     async function handleAuth() {
       if (!isConfigured) {
-        navigate('/dashboard/feed');
+        navigate('/verify');
         return;
       }
 
@@ -25,13 +26,30 @@ export default function AuthCallback() {
         }
 
         if (session?.user) {
+          // Check profile verification status from Supabase
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          const isDomainVerified = profile?.verification_status === 'verified' || isApprovedInstitutionalDomain(session.user.email);
+
           performLogin({
             id: session.user.id,
-            official_email: session.user.email,
-            full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0]
+            official_email: profile?.institutional_email || session.user.email,
+            personal_email: session.user.email,
+            full_name: profile?.full_name || session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+            verification_status: isDomainVerified ? 'verified' : (profile?.verification_status || 'pending')
           });
-          showToast('Successfully authenticated with Google!');
-          navigate('/dashboard/feed');
+
+          if (isDomainVerified) {
+            showToast('Welcome back! Verified student access granted.');
+            navigate('/dashboard/feed');
+          } else {
+            showToast('Identity authenticated. Complete MVJCE student verification to continue.');
+            navigate('/verify');
+          }
         } else {
           navigate('/auth');
         }
@@ -51,10 +69,10 @@ export default function AuthCallback() {
           <BookOpen className="w-6 h-6" />
         </div>
         <h2 className="text-base font-semibold text-slate-900">
-          Completing Student Sign-In
+          Establishing Secure Session
         </h2>
         <p className="text-xs text-slate-500">
-          Verifying your institutional credentials with MVJCE directory...
+          Checking your institutional student verification status...
         </p>
         <RefreshCw className="w-5 h-5 text-[#002147] animate-spin mx-auto pt-1" />
       </div>

@@ -127,13 +127,58 @@ describe('Authentication & Profile Verification Audit', () => {
   });
 
   it('should enforce route protection rules for unauthenticated users', () => {
-    function canAccessDashboard({ isAuthenticated, isGuest }) {
-      return Boolean(isAuthenticated || isGuest);
+    function canAccessDashboard({ isAuthenticated, isGuest, verificationStatus }) {
+      if (isGuest) return true;
+      if (!isAuthenticated) return false;
+      return verificationStatus === 'verified';
     }
 
-    assert.equal(canAccessDashboard({ isAuthenticated: true, isGuest: false }), true);
-    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: true }), true);
-    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: false }), false);
+    assert.equal(canAccessDashboard({ isAuthenticated: true, isGuest: false, verificationStatus: 'verified' }), true);
+    assert.equal(canAccessDashboard({ isAuthenticated: true, isGuest: false, verificationStatus: 'pending' }), false);
+    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: true, verificationStatus: 'pending' }), true);
+    assert.equal(canAccessDashboard({ isAuthenticated: false, isGuest: false, verificationStatus: 'pending' }), false);
+  });
+
+  it('should validate configurable institutional domain logic', () => {
+    const approvedDomains = ['@mvjce.edu.in', '@mvjce.onmicrosoft.com', '@mvjce.ac.in'];
+    function checkDomain(email) {
+      if (!email || !email.includes('@')) return false;
+      const domain = `@${email.split('@')[1].toLowerCase()}`;
+      return approvedDomains.includes(domain);
+    }
+
+    // Valid institutional emails
+    assert.equal(checkDomain('student@mvjce.edu.in'), true);
+    assert.equal(checkDomain('1mv21cs001@mvjce.onmicrosoft.com'), true);
+    assert.equal(checkDomain('faculty@mvjce.ac.in'), true);
+
+    // Personal Google / non-institutional accounts
+    assert.equal(checkDomain('john.doe@gmail.com'), false);
+    assert.equal(checkDomain('student@outlook.com'), false);
+    assert.equal(checkDomain('student@yahoo.co.in'), false);
+  });
+
+  it('should transition student verification statuses properly', () => {
+    const student = {
+      id: 'usr_google_123',
+      personal_email: 'john.doe@gmail.com',
+      verification_status: 'pending',
+      institutional_email: null
+    };
+
+    assert.equal(student.verification_status, 'pending');
+
+    // Student submits Outlook email
+    student.institutional_email = 'john.doe@mvjce.edu.in';
+    student.verification_status = 'email_verification_sent';
+    student.verification_code = '123456';
+    assert.equal(student.verification_status, 'email_verification_sent');
+
+    // Student confirms valid 6-digit code
+    student.verification_status = 'verified';
+    student.verified_at = new Date().toISOString();
+    assert.equal(student.verification_status, 'verified');
+    assert.ok(student.verified_at);
   });
 });
 

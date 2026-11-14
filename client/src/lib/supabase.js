@@ -126,6 +126,117 @@ export async function updatePassword(newPassword) {
   return await supabase.auth.updateUser({ password: newPassword });
 }
 
+/* =========================================================================
+   STUDENT VERIFICATION SERVICES
+   ========================================================================= */
+
+export async function requestInstitutionalVerification(institutionalEmail, code, expiresAt) {
+  if (!isConfigured) {
+    return { data: { success: true, simulated: true, code }, error: null };
+  }
+
+  // 1. Attempt server-side RPC validation
+  const { data, error } = await supabase.rpc('request_institutional_verification', {
+    p_institutional_email: institutionalEmail,
+    p_code: code,
+    p_expires_at: expiresAt
+  });
+
+  if (!error) {
+    return { data, error: null };
+  }
+
+  // Fallback direct table update if RPC migration not executed yet
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('User not authenticated') };
+
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      institutional_email: institutionalEmail,
+      verification_status: 'email_verification_sent',
+      verification_code: code,
+      verification_expires_at: expiresAt,
+      verification_method: 'outlook_otp',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', user.id);
+
+  return { data: { success: !updateError }, error: updateError };
+}
+
+export async function verifyInstitutionalCode(code) {
+  if (!isConfigured) {
+    return { data: { success: true, simulated: true }, error: null };
+  }
+
+  // 1. Attempt server-side RPC validation
+  const { data, error } = await supabase.rpc('verify_institutional_code', {
+    p_code: code
+  });
+
+  if (!error && data?.success) {
+    return { data, error: null };
+  }
+
+  // Fallback direct table verification
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('User not authenticated') };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('verification_code, verification_expires_at')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.verification_code === code) {
+    const { error: markError } = await supabase
+      .from('profiles')
+      .update({
+        verification_status: 'verified',
+        verified_at: new Date().toISOString(),
+        verification_code: null
+      })
+      .eq('id', user.id);
+
+    return { data: { success: !markError }, error: markError };
+  }
+
+  return { data: null, error: new Error('Invalid verification code entered.') };
+}
+
+export async function requestManualVerification({ institutionalEmail, usn, notes, proofUrl }) {
+  if (!isConfigured) {
+    return { data: { success: true, simulated: true }, error: null };
+  }
+
+  const { data, error } = await supabase.rpc('request_manual_student_review', {
+    p_institutional_email: institutionalEmail,
+    p_usn: usn || '',
+    p_notes: notes || '',
+    p_id_proof_url: proofUrl || null
+  });
+
+  if (!error) return { data, error: null };
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { data: null, error: new Error('User not authenticated') };
+
+  const { error: updateError } = await supabase
+    .from('profiles')
+    .update({
+      institutional_email: institutionalEmail,
+      usn: usn,
+      manual_review_notes: notes,
+      verification_status: 'manual_review',
+      verification_method: 'admin_manual',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', user.id);
+
+  return { data: { success: !updateError }, error: updateError };
+}
+
 export async function sendPhoneOtp(phone) {
   if (!isConfigured) {
     return { data: { message: 'OTP Sent' }, error: null };

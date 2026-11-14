@@ -4,7 +4,7 @@ import { useCampusShelf } from '../context/CampusShelfContext';
 import { BookOpen, RefreshCw } from 'lucide-react';
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, isGuest, isAuthLoading } = useCampusShelf();
+  const { currentUser, isAuthenticated, isGuest, isAuthLoading } = useCampusShelf();
 
   if (isAuthLoading) {
     return (
@@ -22,8 +22,14 @@ export default function ProtectedRoute() {
     );
   }
 
+  // Unauthenticated and not guest -> redirect to login
   if (!isAuthenticated && !isGuest) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Authenticated student whose institutional verification is pending -> redirect to verification
+  if (isAuthenticated && !isGuest && currentUser?.verification_status !== 'verified') {
+    return <Navigate to="/verify" replace />;
   }
 
   return <Outlet />;

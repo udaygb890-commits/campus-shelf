@@ -20,6 +20,7 @@ import Auth from './components/Auth';
 import AuthCallback from './components/AuthCallback';
 import ResetPassword from './components/ResetPassword';
 import ProtectedRoute from './components/ProtectedRoute';
+import StudentVerification from './components/StudentVerification';
 import Onboarding from './components/Onboarding';
 import Sidebar from './components/Sidebar';
 import Feed from './components/Feed';
@@ -265,6 +266,8 @@ export default function App() {
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/reset-password" element={<ResetPassword />} />
+            <Route path="/verify" element={<StudentVerification />} />
+            <Route path="/verification" element={<Navigate to="/verify" replace />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
             {/* Authenticated / Guest Dashboard Sub-Routes with Route Protection */}

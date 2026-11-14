@@ -20,6 +20,9 @@ import {
   signOutUser,
   resetPassword,
   updatePassword,
+  requestInstitutionalVerification,
+  verifyInstitutionalCode,
+  requestManualVerification,
   createListing as supabaseCreateListing,
   updateListing as supabaseUpdateListing,
   deleteListing as supabaseDeleteListing,
@@ -28,6 +31,11 @@ import {
   sendMessage as supabaseSendMessage,
   subscribeToChatMessages
 } from '../lib/supabase';
+import { 
+  isApprovedInstitutionalDomain, 
+  getApprovedDomains, 
+  getDomainHelperText 
+} from '../lib/institutionalConfig';
 
 const CampusShelfContext = createContext();
 
@@ -172,16 +180,22 @@ export function CampusShelfProvider({ children }) {
             setCurrentUser(prev => ({ ...prev, ...profile }));
           } else {
             // Profile fallback if trigger delayed or OAuth first sign-in
+            const isInst = isApprovedInstitutionalDomain(session.user.email);
             const newProfile = {
               id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
               college_email: session.user.email,
+              personal_email: session.user.email,
+              institutional_email: isInst ? session.user.email : null,
               branch: session.user.user_metadata?.branch || 'First Year Basic Sciences',
               year: Number(session.user.user_metadata?.year) || 1,
-              credit_balance: 1,
+              credit_balance: isInst ? 1 : 0,
               campus_zone: 'Day Scholar',
               default_handoff: 'ECE Block Lobby',
-              role: 'student'
+              role: 'student',
+              verification_status: isInst ? 'verified' : 'pending',
+              verification_method: isInst ? 'domain_sso' : null,
+              verified_at: isInst ? new Date().toISOString() : null,
             };
             await supabase.from('profiles').upsert(newProfile, { onConflict: 'id' }).catch(() => {});
             setCurrentUser(prev => ({ ...prev, ...newProfile }));
@@ -576,6 +590,100 @@ export function CampusShelfProvider({ children }) {
     }
   };
 
+  /* =========================================================================
+     INSTITUTIONAL STUDENT VERIFICATION
+     ========================================================================= */
+
+  const sendInstitutionalVerification = async (institutionalEmail) => {
+    if (!isApprovedInstitutionalDomain(institutionalEmail)) {
+      const helper = getDomainHelperText();
+      showToast(`Invalid institutional email domain. ${helper}`);
+      return { success: false, error: `Invalid institutional email domain. ${helper}` };
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+
+    try {
+      const { data, error } = await requestInstitutionalVerification(institutionalEmail, code, expiresAt);
+      if (error) {
+        showToast(error.message || 'Failed to send verification code');
+        return { success: false, error: error.message };
+      }
+
+      setCurrentUser(prev => ({
+        ...prev,
+        institutional_email: institutionalEmail,
+        verification_status: 'email_verification_sent'
+      }));
+
+      if (data?.simulated || !isConfigured) {
+        showToast(`Verification code sent to ${institutionalEmail}! (Dev OTP: ${code})`);
+      } else {
+        showToast(`Verification code sent to ${institutionalEmail}`);
+      }
+
+      return { success: true, simulatedCode: code };
+    } catch (err) {
+      showToast(err.message || 'Error requesting verification');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const confirmInstitutionalCode = async (code) => {
+    try {
+      const { data, error } = await verifyInstitutionalCode(code);
+      if (error) {
+        showToast(error.message || 'Invalid or expired code');
+        return { success: false, error: error.message };
+      }
+
+      setCurrentUser(prev => ({
+        ...prev,
+        verification_status: 'verified',
+        verification_method: 'outlook_otp',
+        verified_at: new Date().toISOString(),
+        credit_balance: prev.credit_balance === 0 ? 1 : prev.credit_balance
+      }));
+
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+      showToast('MVJCE Student verification successful! Welcome aboard.');
+      return { success: true };
+    } catch (err) {
+      showToast(err.message || 'Failed to verify code');
+      return { success: false, error: err.message };
+    }
+  };
+
+  const submitManualVerification = async ({ institutionalEmail, usn, notes, proofUrl }) => {
+    try {
+      const { data, error } = await requestManualVerification({ institutionalEmail, usn, notes, proofUrl });
+      if (error) {
+        showToast(error.message || 'Failed to submit manual review');
+        return { success: false, error: error.message };
+      }
+
+      setCurrentUser(prev => ({
+        ...prev,
+        institutional_email: institutionalEmail,
+        usn,
+        manual_review_notes: notes,
+        verification_status: 'manual_review',
+        verification_method: 'admin_manual'
+      }));
+
+      showToast('Verification request submitted for admin review.');
+      return { success: true };
+    } catch (err) {
+      showToast(err.message || 'Error submitting manual review');
+      return { success: false, error: err.message };
+    }
+  };
+
   return (
     <CampusShelfContext.Provider value={{
       currentUser,
@@ -615,6 +723,9 @@ export function CampusShelfProvider({ children }) {
       performLogout,
       sendPasswordReset,
       updateStudentPassword,
+      sendInstitutionalVerification,
+      confirmInstitutionalCode,
+      submitManualVerification,
       toastMessage,
       showToast
     }}>
